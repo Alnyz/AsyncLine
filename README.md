@@ -1,7 +1,7 @@
 # AsyncLine
 Unofficially Line bot Messaging using Asynchronous
 
-[![python3.x](https://img.shields.io/badge/3.6%20%7C%203.7-blue.svg?&logo=python&label=Python)](https://www.python.org/downloads/release/python-372/) [![License](https://img.shields.io/github/license/dyseo/A.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://travis-ci.org/dyseo/AsyncLine.svg?branch=master)](https://travis-ci.org/dyseo/AsyncLine)
+[![python3.x](https://img.shields.io/badge/3.6%20%7C%203.7-blue.svg?&logo=python&label=Python)](https://www.python.org/downloads/release/python-372/) [![License](https://img.shields.io/github/license/dyseo/A.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://travis-ci.org/dyseo/AsyncLine.svg?branch=master)](https://travis-ci.org/dyseo/AsyncLine) [![Version](https://img.shields.io/badge/Version-1.0-red.svg)](https://github.com/dyseo/AsyncLine)
 ___
 
 ## Important
