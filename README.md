@@ -13,6 +13,7 @@ Please be warned: `AsyncLine` is in a very early beta. You will encounter bugs w
 -  [x] Safe-Thread thrift
 -  [x] Slightly faster (make it sure)
 -  [x] Easy to use
+-  [ ] Installed from pip soon.
 
 ## Installation
 1. clone this repos `git clone https://github.com/dyseo/AsyncLine`
@@ -28,6 +29,11 @@ Please read [Example](example) as well as you can
 ## Base Source
 [Anysz](https://github.com/anysz)
 
+
+## Getting Error
+[Issues](https://github.com/dyseo/AsyncLine/issues) always open for this
+
+
 ## License
 AsyncLine - Unofficially API Client library for Python
 
@@ -36,7 +42,3 @@ A short and simple permissive license with conditions only requiring preservatio
 AsyncLine is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-
-
-## Getting Error
-[Issues](https://github.com/dyseo/AsyncLine/issues) always open for this
