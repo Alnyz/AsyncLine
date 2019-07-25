@@ -118,7 +118,7 @@ class Poll(Connection):
 	async def trace(self):
 		ops = await self.fetch(self.rev)
 		for op in ops:
-			
+			self.rev = max(self.rev, op.revision)
 			if self.func_handler:
 				for i in range(len(self.Opinterrupts)):						
 					if list(self.Opinterrupts[i].values())[0] in self.func_handler[i]:
