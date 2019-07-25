@@ -100,14 +100,11 @@ class Poll(Connection):
 				future = asyncio.run_coroutine_threadsafe(
 						self.Opinterrupts[c][ops.type](ops), new_loop
 					)
-				return future.result()
+				future.result()
 			except Exception as e:
 				future.set_exception(DefaultException)
 				print(traceback.format_exc())
 			
-			new_loop.call_soon_threadsafe(new_loop.stop)
-			t.join()
-		
 	async def fetchOps(self, localRev, count=10):
 		return await self.call('fetchOps', localRev, count, 0, 0)
 		
@@ -121,12 +118,12 @@ class Poll(Connection):
 	async def trace(self):
 		ops = await self.fetch(self.rev)
 		for op in ops:
+			
 			if self.func_handler:
 				for i in range(len(self.Opinterrupts)):						
 					if list(self.Opinterrupts[i].values())[0] in self.func_handler[i]:
 						if op.type in self.Opinterrupts[i].keys():				
 							await self._exec(self.Opinterrupts[i][op.type], op)
-						await self.setRevision(op.revision)
 		
 	async def streams(self):
 		try:
