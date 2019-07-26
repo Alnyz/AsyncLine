@@ -129,7 +129,7 @@ class LineNext(Talk):
 		elif returnAs == 'default':
 			return oldList
 	
-	async def uploadObjTalk(self, path, types='image', remove_path=remove_path, objId=None, to=None, name=None):	
+	async def uploadObjTalk(self, path, types='image', remove_path=False, objId=None, to=None, name=None):	
 		assert types in ['image','gif','video','audio','file'], "values of types incorrect got %s" % types
 		
 		headers=None
