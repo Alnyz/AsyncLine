@@ -157,6 +157,7 @@ class Filters:
 						c, a = t[0][len(i):], t[1:]									
 						c = c if _.cs else c.lower()	
 						m.command = ([c] + a) if c in _.c else None
+			
 			return bool(m.command)
 		return create(
 		"Command",

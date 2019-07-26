@@ -3,14 +3,13 @@ from .models import *
 from .auth import Auth
 from .poll import Poll
 from .talk import Talk
-from .utils import ThreadPool
 from . import config
 
 from .lib.Gen.ttypes import *
 
 from hyper.contrib import HTTPAdapter
 from random import randint
-from multiprocessing import Process
+
 import os
 import base64
 import re
@@ -19,6 +18,7 @@ import shutil
 import time
 import json
 import tempfile
+
 
 def callback(*args, **kws):
 	print(*args, **kws)
@@ -35,7 +35,6 @@ class LineNext(Talk):
 		self._session = requests.Session()
 		self._session.mount("https://", HTTPAdapter())
 		self._session.mount("http://", HTTPAdapter())
-		self.process = ThreadPool(workers)
 		
 	def __validate(self, mail, passwd, cert, token, qr):
 		if mail is not None and passwd is not None and cert is None:
@@ -55,8 +54,10 @@ class LineNext(Talk):
 	
 	def afterLogin(self, *args, **kws):
 		for k,v in kws.items():
-			try: setattr(self, k, v)
-			except: pass
+			try:
+				setattr(self, k, v)
+			except:
+				pass
 			
 	def login(self, mail=None, passwd=None, cert=None, token=None, qr=False):
 		self.__validate(mail, passwd, cert, token, qr)
@@ -72,12 +73,13 @@ class LineNext(Talk):
 		else:
 			return False
 			        
-	def get_content(self, url, headers=None, *args, **kwgs):
+	async def get_content(self, url, headers=None, *args, **kwgs):
 		if headers is None:
 			headers = self.headers
+		
 		return self._session.get(url, headers=headers, stream=True, *args, **kwgs)
 	
-	def post_content(self, url, data = None, files = None, headers = None, *args, **kwgs):
+	async def post_content(self, url, data = None, files = None, headers = None, *args, **kwgs):
 		if headers is None:
 			headers = self.headers
 		
@@ -91,12 +93,12 @@ class LineNext(Talk):
 		elif returnAs == 'path':
 			return os.path.join(fPath, fName)
 
-	def download_fileUrl(self, url, path=None, headers=None, return_as = "path"):
+	async def download_fileUrl(self, url, path=None, headers=None, return_as = "path"):
 		assert return_as in ['path','bool','bin'], 'Invalid returnAs value %' % return_as
 		if not path:
 			path = self.generate_tempFile()
-			
-		r = self.get_content(url, headers=headers, timeout=None)
+		
+		r = await self.get_content(url, headers=headers)
 		if r.ok:
 			self.save_file(path, r.content)
 			if return_as == "path":
@@ -112,8 +114,7 @@ class LineNext(Talk):
 	
 	def genOBSParams(self, newList, returnAs='json'):
 		oldList = {'name': self.generate_tempFile('file'),'ver': '1.0'}
-		if returnAs not in ['json','b64','default']:
-			raise Exception('Invalid parameter returnAs')
+		assert returnAs in ['json','b64','default'], "Invalid parameter returnAs got %s" % returnAs
 		if 'name' in newList and not newList['name']:
 			newList['name'] = oldList['name']
 		oldList.update(newList)
@@ -128,11 +129,8 @@ class LineNext(Talk):
 		elif returnAs == 'default':
 			return oldList
 	
-	def uploadObjTalk(self, path, types='image', returnAs='bool', objId=None, to=None, name=None):
-		if returnAs not in ['objId','bool']:
-			raise Exception('Invalid returnAs value %s must objId or bool' % returnAs)
-		if types not in ['image','gif','video','audio','file']:
-			raise Exception('Invalid type value')
+	async def uploadObjTalk(self, path, types='image', remove_path=remove_path, objId=None, to=None, name=None):	
+		assert types in ['image','gif','video','audio','file'], "values of types incorrect got %s" % types
 		
 		headers=None
 		fdata = {"file": open(path, 'rb')}
@@ -140,9 +138,10 @@ class LineNext(Talk):
 			e_p = config.OBS_URL + '/talk/m/upload.nhn'
 			data = {'params': self.genOBSParams({'oid': objId,'size': len(open(path, 'rb').read()),'type': types, 'name': name})}
 		
-		self.process.put(self.post_content,
-						e_p, data,
-						fdata, headers	
-					)
-		if path.endswith(".bin"):
+		r = await self.post_content(e_p, data,fdata, headers)
+		if r.ok:
+			return True
+		else:
+			raise Exception("Upload content failed returning code %s" % r.status_code)
+		if remove_path:
 			self.delete_file(path)

@@ -7,7 +7,6 @@ cl = LineNext('ios')
 LineNext(*args)
 args:
 	client_name: pass one of client name, see models.py
-	workers: int of workers for request
 """
 
 cl.login(qr=True)
@@ -20,23 +19,24 @@ args:
 	passwd: string of password from email registered
 	cert: string cert after login email pass once if want login with cert
 """
-cl.poll._thread = True
-cl.poll._debug = False
 
-cl.auth.url('/S4')
+cl.auth.url('/P4')
 
-@cl.poll.hooks(25, Filters.text)
-async def echo_message(op):
-	m = op.message
-	text = m.text.lower()
+@cl.poll.hooks(type=25, filters=Filters.text)
+async def echo_message(msg):
+	"""
+	This function will be catch all any message of text
+	"""
+	
+	text = msg.text.lower()
 	if text == "helo":
-		await cl.sendMessage(m.to, "Hello")
+		await cl.sendMessage(msg.to, "Hello")
 	if text == "hey":
-		await cl.sendMessage(m.to, "hey")
+		await cl.sendMessage(msg.to, "hey")
 
 
 print("Program Started")
 print("Name: ",cl.profile.displayName)
 if __name__ == "__main__":
-	loop = asyncio.get_event_loop()
-	loop.run_until_complete(cl.poll.streams())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(cl.poll.streams())

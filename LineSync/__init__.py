@@ -1,3 +1,5 @@
+from asyncio_monkey import patch_all # noqa isort:skip
+patch_all()
 from .connections import Connection
 from .main import LineNext
 from .proto import *

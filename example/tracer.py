@@ -7,7 +7,6 @@ cl = LineNext('ios')
 LineNext(*args)
 args:
 	client_name: pass one of client name, see models.py
-	workers: int of workers for request
 """
 
 cl.login(qr=True)
@@ -20,34 +19,39 @@ args:
 	passwd: string of password from email registered
 	cert: string cert after login email pass once if want login with cert
 """
-cl.poll._thread = True
-cl.poll._debug = False
+cl.auth.url('/P4')
 
-cl.auth.url('/S4')
+@cl.poll.hooks(type=25, filters=Filters.command("hello"))
+async def send_message(msg):
+	"""
+	This function will wrap message text is it have 'hello' in text
+	"""
+	await cl.sendMessage(msg.to, "Hello")
 
-@cl.poll.hooks(25, Filters.command("hello"))
-async def send_message(op):
-	m = op.message
-	text = m.text.lower()
-	await cl.sendMessage(m.to, "Hello")
+@cl.poll.hooks(type=25, filters=Filters.command("hey", prefix="."))
+async def send_message(msg):
+	"""
+	This function will wrap message text is it have 'hey' in text with ("." prefix)
+	"""
+	name = (await cl.getContacts(msg._from)).displayName
+	await cl.sendMessage(msg.to, "Hey "+name)
 
-@cl.poll.hooks(25, Filters.command("hey", prefix="."))
-async def send_message(op):
-	m = op.message
-	text = m.text.lower()
-	name = (await cl.getContacts(m._from)).displayName
-	await cl.sendMessage(m.to, "Hey "+name)
-
-@cl.poll.hooks(13)
+@cl.poll.hooks(type=13)
 async def notifed_join(op):
+	"""
+	This function will wrap if some user join into group
+	"""
 	print(op)
 
-@cl.poll.hooks(19)
+@cl.poll.hooks(type=19)
 async def notifed_kick(op):
+	"""
+	This function will wrap if some user have kicked
+	"""
 	print(op)
 	
 print("Program Started")
 print("Name: ",cl.profile.displayName)
-if __name__ == "__main__":
-	loop = asyncio.get_event_loop()
-	loop.run_until_complete(cl.poll.streams())
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(cl.poll.streams())

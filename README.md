@@ -9,7 +9,7 @@ Please be warned: `AsyncLine` is in a very early beta. You will encounter bugs w
 
 ## Features
 -  [x] Fully Asynchronously
--  [x] Optional using threads
+-  [ ] Optional using threads (removed for some reasons)
 -  [x] Safe-Thread thrift
 -  [x] Slightly faster (make it sure)
 -  [x] Easy to use
@@ -18,7 +18,7 @@ Please be warned: `AsyncLine` is in a very early beta. You will encounter bugs w
 ## Installation
 1. clone this repos `git clone https://github.com/dyseo/AsyncLine`
 2. `cd AsyncLine`
-3. `pip3 install requirements.txt`
+3. `pip3 install -r requirements.txt`
 
 ## How to?
 Please read [Example](example) as well as you can

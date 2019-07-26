@@ -479,31 +479,23 @@ class Talk(object):
 		"""
 		return await self.auth.call("getGroupIdsJoined")
 	
-	async def acceptGroupInvitation(self, group_id: str) -> bool:
+	async def acceptGroupInvitation(self, group_id: str, ticket: str = None) -> bool:
 		"""
-		Use this method to join into specifiec group_id
+		Use this method to join into specifiec group_id, or using ticket id if not None
 		
 		Args:
 			group_id: string of group_id
+			ticket: string of ticket from group
 		
 		Return:
 			bool == False, because this will returning NoneType as False
 		"""
-		return bool(await self.auth.call("acceptGroupInvitation", 0, group_id))
-	
-	async def acceptGroupInvitationByTicket(self, ticket: str) -> bool:
-		"""
-		Use this method to accept group by ticket id of group
-		important this will work if attribute of group.preventedJoinByTicket == False
+		if ticket is not None:
+			return bool(await self.auth.call("acceptGroupInvitationByTicket", 0, group_id, ticket))
+		else:
+			return bool(await self.auth.call("acceptGroupInvitation", 0, group_id))
 		
-		Args:
-			ticket: string of ticket id
-			
-		Return:
-			bool == False, because this will returning NoneType as False
-		"""
-		return bool(await self.auth.call("acceptGroupInvitationByTicket", 0, ticket))
-	
+
 	async def cancelGroupInvitation(self, group_id: str, mid_users: Union[str, list]) -> bool:
 		"""
 		Use this method to cancel invitation user from group
@@ -721,7 +713,11 @@ class Talk(object):
 					mm.append(mid["M"])
 				return mm
 	
-	async def sendAudio(self, to: str, path: str = None, url: str = None) -> bool:
+	async def sendAudio(self,
+								to: str,
+								path: str = None,
+								url: str = None,
+								remove_path: bool = False) -> bool:
 		"""
 		Use this method to send Audio message
 		important if args url is given, it cannot use the path
@@ -730,19 +726,24 @@ class Talk(object):
 			to: mid of group or user will be send
 			path: string of path where audio will be send
 			url: string of url from audio
-		
+			remove_path: set a bool parameter for deleting temp file after download contentremove_path: set a bool parameter for deleting temp file after download content
+			
 		Return:
 			<class 'bool'> is True
 		"""
 		if path is not None and url is not None:
 			raise Exception("if args url is given, it cannot use the path")
 		if path is None and url is not None:
-			path = self.client.download_fileUrl(url)
+			path = await self.client.download_fileUrl(url)
 			
 		objectId = (await self.sendMessage(to, text=None, contentType = 3)).id
-		return self.client.uploadObjTalk(path=path, types='audio', returnAs='bool', objId=objectId)
+		return self.client.uploadObjTalk(path=path, types='audio', remove_path=remove_path, objId=objectId)
 		
-	async def sendImage(self, to: str, path: str = None, url: str = None) -> bool:
+	async def sendImage(self,
+								to: str,
+								path: str = None,
+								url: str = None,
+								remove_path: bool = False) -> bool:
 		"""
 		Use this method to send Image message
 		important if args url is given, it cannot use the path
@@ -751,19 +752,24 @@ class Talk(object):
 			to: mid of group or user will be send
 			path: string of path where image will be send
 			url: string of url from image
-		
+			remove_path: set a bool parameter for deleting temp file after download content
+			
 		Return:
 			<class 'bool'> is True
 		"""
 		if path is not None and url is not None:
 			raise Exception("if args url is given, it cannot use the path")
 		if url is not None and path is None:
-			path = self.client.download_fileUrl(url)
+			path = await self.client.download_fileUrl(url)
 				
 		objectId = (await self.sendMessage(to, text=None, contentType=1)).id
-		return self.client.uploadObjTalk(path=path, types='image', returnAs='bool', objId=objectId)
+		return await self.client.uploadObjTalk(path=path, types='image', remove_path=remove_path, objId=objectId)
 	
-	async def sendVideo(self, to: str, path: str = None, url: str = None) -> bool:
+	async def sendVideo(self,
+								to: str,
+								path: str = None,
+								url: str = None,
+								remove_path: bool = False) -> bool:
 		"""
 		Use this method to send Video message
 		important if args url is given, it cannot use the path
@@ -772,17 +778,18 @@ class Talk(object):
 			to: mid of group or user will be send
 			path: string of path where Video will be send
 			url: string of url from video
-		
+			remove_path: set a bool parameter for deleting temp file after download content
+			
 		Return:
 			<class 'bool'> is True
 		"""
 		if path is not None and url is not None:
 			raise Exception("if args url is given, it cannot use the path")
 		if url is not None and path is None:
-			path = self.client.download_fileUrl(url)
+			path = await self.client.download_fileUrl(url)
 			
 		objectId = (await self.sendMessage(to, text=None, contentMetadata={'VIDLEN': '60000','DURATION': '60000'}, contentType = 2)).id
-		return self.client.uploadObjTalk(path=path, types='video', returnAs='bool', objId=objectId)
+		return await self.client.uploadObjTalk(path=path, types='video', remove_path=remove_path, objId=objectId)
 	
 	async def sendFile(self, to: str, path: str = None, file_name: str = None):
 		"""
@@ -801,4 +808,10 @@ class Talk(object):
 		if file_name is None:
 			file_name = fp.name
 		objectId = (await self.sendMessage(to, text=None, contentMetadata={'FILE_NAME': str(file_name),'FILE_SIZE': str(len(fp.read()))}, contentType = 14)).id
-		return self.client.uploadObjTalk(path=path, types='file', returnAs='bool', objId=objectId)
+		return await self.client.uploadObjTalk(path=path, types='file', remove_path=remove_path, objId=objectId)
+		
+	async def fetchOps(self, localRev, count=10):
+		return await self.client.call('fetchOps', localRev, count, 0, 0)
+		
+	async def fetchOperations(self, localRev, count=10):
+		return await self.client.call('fetchOperations', localRev, count)

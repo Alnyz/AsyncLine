@@ -15,7 +15,7 @@ from frugal.aio.transport.http_transport import FHttpTransport
 from frugal.exceptions import TTransportExceptionType
 
 class HttpClient(FHttpTransport):
-	def __init__(self, url, timeout=4500):
+	def __init__(self, url, timeout=5000):
 		super().__init__(0)
 		self._url = url
 		self.setTimeout(timeout) 
