@@ -37,6 +37,6 @@ async def echo_message(msg):
 
 print("Program Started")
 print("Name: ",cl.profile.displayName)
-if __name__ == "__main__":
+
 loop = asyncio.get_event_loop()
 loop.run_until_complete(cl.poll.streams())
