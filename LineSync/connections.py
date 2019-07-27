@@ -6,7 +6,7 @@ sys.path.insert(0, path)
 
 from . import config
 from .http_client import HttpClient
-from thrift.protocol.TCompactProtocol import TCompactProtocolFactory
+from thrift.protocol.TCompactProtocol import TCompactProtocolAcceleratedFactory
 from frugal.provider import FServiceProvider
 from frugal.context import FContext
 
@@ -19,7 +19,7 @@ class Connection(object):
 	def __init__(self, uri_path):
 		self.context = FContext()
 		self.transport = HttpClient(config.BASE_URL + uri_path)
-		self.protocol_factory = TCompactProtocolFactory()
+		self.protocol_factory = TCompactProtocolAcceleratedFactory()
 		self.wrapper_factory  = LegyProtocolFactory(self.protocol_factory)
 		self.service_provider = FServiceProvider(self.transport, self.wrapper_factory)
 		
