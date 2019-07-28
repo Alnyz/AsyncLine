@@ -30,9 +30,9 @@ async def echo_message(msg):
 	
 	text = msg.text.lower()
 	if text == "helo":
-		await cl.sendMessage(msg.to, "Hello")
+		await cl.talk.sendMessage(msg.to, "Hello")
 	if text == "hey":
-		await cl.sendMessage(msg.to, "hey")
+		await cl.talk.sendMessage(msg.to, "hey")
 
 
 print("Program Started")

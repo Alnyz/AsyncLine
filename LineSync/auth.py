@@ -206,7 +206,7 @@ class Auth(Connection):
 		self.last_rev = await self.call('getLastOpRevision')
 		self.settings = await self.call('getSettings')
 		self.authToken = self.authToken
-		self.is_login = True
+		
 		for remoteFunc in self.afterLoginRemote:
 			remoteFunc(**{
 				'profile': self.profile,
@@ -217,3 +217,6 @@ class Auth(Connection):
 				'cert': getattr(self, 'cert', None),
 				'app_header': (self.LA, self.UA)
 			})
+	
+	async def logout(self):
+		await self.call("logoutZ")

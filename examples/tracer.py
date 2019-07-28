@@ -26,7 +26,7 @@ async def send_message(msg):
 	"""
 	This function will wrap message text is it have 'hello' in text
 	"""
-	await cl.sendMessage(msg.to, "Hello")
+	await cl.talk.sendMessage(msg.to, "Hello")
 
 @cl.poll.hooks(type=25, filters=Filters.command("hey", prefix="."))
 async def send_message(msg):

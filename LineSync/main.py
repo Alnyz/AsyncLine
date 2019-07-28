@@ -2,6 +2,7 @@
 from .models import *
 from .auth import Auth
 from .poll import Poll
+from .channel import Channel
 from .talk import Talk
 from . import config
 
@@ -23,18 +24,20 @@ import tempfile
 def callback(*args, **kws):
 	print(*args, **kws)
 
-class LineNext(Talk):
-	def __init__(self, client_name, workers=4):
+class LineNext(object):
+	def __init__(self, client_name):
 		self.auth = Auth(client_name)
 		self.auth.remote(self.afterLogin)
-		super().__init__(self, self.auth)
-		
+		self.talk = Talk(self, self.auth)
+		self.auth.remote(self.talk.afterLogin)
+		self.ch = Channel(self.auth)
+		self.auth.remote(self.ch.afterLogin)
 		self.poll = Poll(client_name)
 		self.auth.remote(self.poll.afterLogin)
 			
 		self._session = requests.Session()
-		self._session.mount("https://", HTTPAdapter())
-		self._session.mount("http://", HTTPAdapter())
+		#self._session.mount("https://", HTTPAdapter())
+		#self._session.mount("http://", HTTPAdapter())
 		
 	def __validate(self, mail, passwd, cert, token, qr):
 		if mail is not None and passwd is not None and cert is None:
@@ -143,5 +146,76 @@ class LineNext(Talk):
 			return True
 		else:
 			raise Exception("Upload content failed returning code %s" % r.status_code)
+		if remove_path:
+			self.delete_file(path)
+	
+	async def updateGroupPicture(self,
+									groupid,
+									path = None,
+									url = None,
+									remove_path = True) -> bool:
+		"""
+		Use this method to change group picture.
+		
+		Args:
+			groupid: string of mid from group
+			path: string from path that where file to upload
+			url: string of image content to upload
+			remove_path: bool pass True if want to deleted cache after download
+		
+		Return:
+			<class 'bool'>
+		"""
+		if path is not None and url is not None:
+			raise Exception("if args url is given, it cannot use the path")
+		if path is None and url is not None:
+			path = await self.download_fileUrl(url)
+		
+		file = {'file': open(path, "rb")}
+		data = {'params': self.genOBSParams({'oid': groupid,'type': 'image'})}
+		uri = config.OBS_URL + '/talk/g/upload.nhn'	
+		r = await self.post_content(url=uri, data=data, files=file)
+		if r.ok:
+			return True
+		else:
+			raise Exception("Update group picture failed returning code %s" % r.status_code)
+		if remove_path:
+			self.delete_file(path)
+	
+	async def updateProfile(self,
+							path = None,
+							url = None,
+							remove_path = True,
+							type = "p") -> bool:
+		"""
+		Use this method to change group picture.
+		
+		Args:
+			groupid: string of mid from group
+			path: string from path that where file to upload
+			url: string of image content to upload
+			remove_path: bool pass True if want to deleted cache after download
+			type: choose 'vp' if want to change video ad profile
+			
+		Return:
+			<class 'bool'>
+		"""
+		if path is not None and url is not None:
+			raise Exception("if args url is given, it cannot use the path")
+		if path is None and url is not None:
+			path = await self.download_fileUrl(url)
+						
+		files = {'file': open(path, 'rb')}
+		params = {'oid': self.mid,'type': 'image'}
+		if type == "vp":
+			params.update({'ver': '2.0', 'cat': 'vp.mp4'})
+		
+		data = {'params': self.genOBSParams(params)}
+		uri = config.OBS_URL + '/talk/p/upload.nhn'
+		r = await self.post_content(url=uri, data=data, files=files)
+		if r.ok:
+			return True
+		else:
+			raise Exception("Update profile picture failed returning code %s" % r.status_code)
 		if remove_path:
 			self.delete_file(path)

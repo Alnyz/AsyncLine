@@ -34,6 +34,7 @@ class Poll(Connection):
 				setattr(self, k, v)
 			except:
 				pass
+				
 		self.setupConnection()
 		
 	def setupConnection(self):

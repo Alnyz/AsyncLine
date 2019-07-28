@@ -1,7 +1,7 @@
-# AsyncLine
-Unofficially Line bot Messaging using Asynchronous
+# ![Logo](LINE.png) AsyncLine
+_Unofficially Line bot Messaging using Asynchronous_
 
-[![python3.x](https://img.shields.io/badge/3.6%20%7C%203.7-blue.svg?&logo=python&label=Python)](https://www.python.org/downloads/release/python-372/) [![License](https://img.shields.io/github/license/dyseo/A.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://travis-ci.org/dyseo/AsyncLine.svg?branch=master)](https://travis-ci.org/dyseo/AsyncLine) [![Version](https://img.shields.io/badge/Version-1.0-red.svg)](https://github.com/dyseo/AsyncLine)
+[![python3.x](https://img.shields.io/badge/3.6%20%7C%203.7-blue.svg?&logo=python&label=Python)](https://www.python.org/downloads/release/python-372/) [![License](https://img.shields.io/github/license/dyseo/A.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://travis-ci.org/dyseo/AsyncLine.svg?branch=master)](https://travis-ci.org/dyseo/AsyncLine) [![Version](https://img.shields.io/badge/Version-Beta%201.3-red)](https://github.com/dyseo/AsyncLine)
 ___
 
 ## Important
@@ -16,15 +16,15 @@ Please be warned: `AsyncLine` is in a very early beta. You will encounter bugs w
 -  [ ] Installed from pip soon.
 
 ## Installation
-1. clone this repos `git clone https://github.com/dyseo/AsyncLine`
+1. clone this repository `git clone https://github.com/dyseo/AsyncLine`
 2. `cd AsyncLine`
 3. `pip3 install -r requirements.txt`
 
 ## How to?
-Please read [Example](example) as well as you can
+Please read [Example](examples) as well as you can
 
 ## Author
-[Dyseo](https://github.com/dyseo) / [Line](https://line.me/ti/p/~line.bngsad)
+Dyseo / [Line](https://line.me/ti/p/~line.bngsad)
 
 ## Base Source
 [Anysz](https://github.com/anysz)
@@ -35,7 +35,7 @@ Please read [Example](example) as well as you can
 
 
 ## License
-AsyncLine - Unofficially API Client library for Python
+*AsyncLine* - Unofficially API Client library for Python
 
 A short and simple permissive license with conditions only requiring preservation of copyright and license notices. Licensed works, modifications, and larger works may be distributed under different terms and without source code.
 

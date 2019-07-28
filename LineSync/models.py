@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import asyncio
+import asyncio, platform
+
 class SyncAsync(object):
 	def __init__(self, _coroutine):
 		self.loop = asyncio.get_event_loop()

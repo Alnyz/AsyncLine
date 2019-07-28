@@ -8,7 +8,6 @@ import asyncio
 
 class Talk(object):
 	def __init__(self, client, auth):
-		
 		self.auth = auth
 		self.client = client
 			
