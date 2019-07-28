@@ -210,8 +210,8 @@ class Filters:
 			
 		def __call__(self, message):
 			return bool(
-				message._from
-				and (message._from in self
+				message.from_
+				and (message.from_ in self
 					or ("me" in self)
 				)
 			)
