@@ -254,7 +254,7 @@ class Talk(object):
 		"""
 		mids = mids if isinstance(mids, (list, tuple)) else [mids]
 		if len(mids) <= 1:
-			return await self.auth.call("getContact", mids[0])
+			await self.auth.call("getContact", mids[0])
 		else:
 			return await self.auth.call("getContacts", mids)
 	
@@ -290,7 +290,7 @@ class Talk(object):
 			return bool(await self.auth.call("unblockContact",0, mids, ""))
 		elif isinstance(mids, (list, tuple)):
 				for mid in mids:
-					return bool(await self.auth.call("unblockContact",0, mid, ""))
+					bool(await self.auth.call("unblockContact",0, mid, ""))
 	
 	async def findAndAddContactsByMid(self, mids: str) -> bool:
 		"""
@@ -544,7 +544,7 @@ class Talk(object):
 		mids = mid_users if isinstance(mid_users, list) else mid_users
 		if len(mids) > 1:
 			for mid in mids:
-				return bool(await self.auth.call("kickoutFromGroup", 0, group_id, [mid]))
+				bool(await self.auth.call("kickoutFromGroup", 0, group_id, [mid]))
 		else:
 			return bool(await self.auth.call("kickoutFromGroup", 0, group_id, mids))
 			
