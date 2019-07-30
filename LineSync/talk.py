@@ -541,7 +541,7 @@ class Talk(object):
 		Return:
 			bool == False, because this will returning NoneType as False
 		"""
-		mids = mid_users if isinstance(mid_users, list) else mid_users
+		mids = mid_users if isinstance(mid_users, list) else [mid_users]
 		if len(mids) > 1:
 			for mid in mids:
 				bool(await self.auth.call("kickoutFromGroup", 0, group_id, [mid]))
