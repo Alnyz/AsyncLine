@@ -237,7 +237,16 @@ class Talk(object):
 		return bool(await self.updateContactSetting(mid, 4, "False"))
 	
 	async def removeContactFromFavouriteList(self, mid: str):
-		return await self.updateContactSetting(mid, 8, "False")
+		"""
+		A simple method for remve your contact into hidden favorite list.
+		
+		Args:
+			mid: string of user mid
+		
+		Return:
+			bool == false, because this will returning NoneType as False
+		"""
+		return bool(await self.updateContactSetting(mid, 8, "False"))
 	
 	async def getContacts(self, mids: Union[str, list, tuple]) -> Union[Contact, list]:
 		"""
@@ -290,7 +299,7 @@ class Talk(object):
 			return bool(await self.auth.call("unblockContact",0, mids, ""))
 		elif isinstance(mids, (list, tuple)):
 				for mid in mids:
-					return bool(await self.auth.call("unblockContact",0, mid, ""))
+					bool(await self.auth.call("unblockContact",0, mid, ""))
 	
 	async def findAndAddContactsByMid(self, mids: str) -> bool:
 		"""
@@ -302,19 +311,7 @@ class Talk(object):
            Return:
            	bool == false, because this will returning NoneType as False
 		"""
-		return bool(await self.auth.call("findAndAddContactsByMid", 0, mids))
-	
-	async def findAndAddContactsByEmail(self, emails: str) -> bool:
-		"""
-		Use this method to find and add contact by email
-		
-		Args:
-			emails: pass string from email user
-            
-           Return:
-           	bool == false, because this will returning NoneType as False
-		"""
-		return bool(await self.auth.call("findAndAddContactsByEmail", 0, emails))
+		return bool(await self.auth.call("findAndAddContactsByMid", 0, mids, 0, ""))
 	
 	async def findAndAddContactsByUserid(self, user_id: str) -> bool:
 		"""
@@ -507,7 +504,7 @@ class Talk(object):
 		Return:
 			bool == False, because this will returning NoneType as False
 		"""
-		mid_users = mid_users if isinstance(mid_users, list) else mid_users
+		mid_users = mid_users if isinstance(mid_users, list) else [mid_users]
 		if len(mid_users) >= 1:
 			for mid in mid_users:
 				bool(await self.auth.call("cancelGroupInvitation", 0, group_id, [mid]))
@@ -541,10 +538,10 @@ class Talk(object):
 		Return:
 			bool == False, because this will returning NoneType as False
 		"""
-		mids = mid_users if isinstance(mid_users, list) else mid_users
+		mids = mid_users if isinstance(mid_users, list) else [mid_users]
 		if len(mids) > 1:
 			for mid in mids:
-				return bool(await self.auth.call("kickoutFromGroup", 0, group_id, [mid]))
+				bool(await self.auth.call("kickoutFromGroup", 0, group_id, [mid]))
 		else:
 			return bool(await self.auth.call("kickoutFromGroup", 0, group_id, mids))
 			
@@ -789,6 +786,31 @@ class Talk(object):
 			
 		objectId = (await self.sendMessage(to, text=None, contentMetadata={'VIDLEN': '60000','DURATION': '60000'}, contentType = 2)).id
 		return await self.client.uploadObjTalk(path=path, types='video', remove_path=remove_path, objId=objectId)
+	
+	async def sendGif(self,
+								to: str,
+								path: str = None,
+								url: str = None,
+								remove_path: bool = False) -> bool:
+		"""
+		Use this method to send Gif message
+		important if args url is given, it cannot use the path
+		
+		Args:
+			to: mid of group or user will be send
+			path: string of path where Gif will be send
+			url: string of url from Gif
+			remove_path: set a bool parameter for deleting temp file after download content
+			
+		Return:
+			<class 'bool'> is True
+		"""
+		if path is not None and url is not None:
+			raise Exception("if args url is given, it cannot use the path")
+		if url is not None and path is None:
+			path = await self.client.download_fileUrl(url)
+			
+		return await self.client.uploadObjTalk(to=to, path=path, types='gif', remove_path=remove_path)
 	
 	async def sendFile(self, to: str, path: str = None, file_name: str = None):
 		"""

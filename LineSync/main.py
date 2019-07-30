@@ -5,12 +5,9 @@ from .poll import Poll
 from .channel import Channel
 from .talk import Talk
 from . import config
-
 from .lib.Gen.ttypes import *
-
-from hyper.contrib import HTTPAdapter
 from random import randint
-
+import urllib
 import os
 import base64
 import re
@@ -34,10 +31,8 @@ class LineNext(object):
 		self.auth.remote(self.ch.afterLogin)
 		self.poll = Poll(client_name)
 		self.auth.remote(self.poll.afterLogin)
-			
 		self._session = requests.Session()
-		#self._session.mount("https://", HTTPAdapter())
-		#self._session.mount("http://", HTTPAdapter())
+		
 		
 	def __validate(self, mail, passwd, cert, token, qr):
 		if mail is not None and passwd is not None and cert is None:
@@ -67,7 +62,7 @@ class LineNext(object):
 		
 	def save_file(self, path, raw):
 		with open(path, "wb") as f:
-			f.write(raw)
+			shutil.copyfileobj(raw, f)
 		
 	def delete_file(self, path):
 		if os.path.exists(path):
@@ -85,7 +80,7 @@ class LineNext(object):
 	async def post_content(self, url, data = None, files = None, headers = None, *args, **kwgs):
 		if headers is None:
 			headers = self.headers
-		
+
 		return self._session.post(url, data=data, files=files, headers=headers, *args, **kwgs)
 	
 	def generate_tempFile(self, returnAs='path'):
@@ -103,7 +98,7 @@ class LineNext(object):
 		
 		r = await self.get_content(url, headers=headers)
 		if r.ok:
-			self.save_file(path, r.content)
+			self.save_file(path, r.raw)
 			if return_as == "path":
 				return path
 			if return_as == "bin":
@@ -132,20 +127,64 @@ class LineNext(object):
 		elif returnAs == 'default':
 			return oldList
 	
+	async def downloadObjMessage(self,
+										message_id,
+										return_as = "path",
+										path = None,
+										remove_path = True):
+		assert return_as in ["path", "bool"], "value of return_as incorrect got %s" % return_as
+		if not path:
+			path = self.generate_tempFile()
+		
+		params = {"oid": message_id}
+		uri = config.OBS_URL + '/talk/m/download.nhn?' + urllib.parse.urlencode(params)
+		r = await self.get_content(uri)
+		if r.ok:
+			self.save_file(path, r.raw)
+			if return_as == "path":
+				return path
+			elif return_as == "bool":
+				return True
+		else:
+			raise Exception("Download message content failed returning code %s" % r.status_code)
+		if remove_path:
+			self.delete_file(path)
+			
 	async def uploadObjTalk(self, path, types='image', remove_path=False, objId=None, to=None, name=None):	
 		assert types in ['image','gif','video','audio','file'], "values of types incorrect got %s" % types
-		
-		headers=None
 		fdata = {"file": open(path, 'rb')}
-		if types in ["image", "video", "file", "audio"]:
-			e_p = config.OBS_URL + '/talk/m/upload.nhn'
-			data = {'params': self.genOBSParams({'oid': objId,'size': len(open(path, 'rb').read()),'type': types, 'name': name})}
 		
-		r = await self.post_content(e_p, data,fdata, headers)
+		if types in ["image", "video", "file", "audio"]:
+			headers = None
+			uri = config.OBS_URL + '/talk/m/upload.nhn'
+			data = {'params': self.genOBSParams({'oid': objId,'size': len(open(path, 'rb').read()),'type': types, 'name': name})}
+		elif types == "gif":
+			uri = config.OBS_URL + '/r/talk/m/reqseq'
+			fdata = None
+			data = open(path, 'rb').read()
+			params = {
+				'name': str(self.poll.revision - 1) + ".original",
+				'oid': 'reqseq',
+				'reqseq': str(self.poll.revision -1),
+				'cat': 'original',
+				'tomid': str(to), 
+				'type': 'image',
+				'ver': '1.0'
+				}
+			headers = {}
+			headers.update({
+				'X-Line-Carrier': '51089,1-0',
+				'Content-Type': 'image/gif',
+				'Content-Length': str(len(data)),
+				'x-obs-params': self.genOBSParams(params,'b64'),
+				**self.headers
+			})
+		
+		r = await self.post_content(url=uri, data=data, files=fdata, headers=headers)
 		if r.ok:
 			return True
 		else:
-			raise Exception("Upload content failed returning code %s" % r.status_code)
+			raise Exception("Upload content %s failed returning code %s" % (types, r.status_code))
 		if remove_path:
 			self.delete_file(path)
 	

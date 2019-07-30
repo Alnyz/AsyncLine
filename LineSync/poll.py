@@ -18,10 +18,9 @@ class Poll(Connection):
 			'user-agent': self.UA,
 			'x-line-application': self.LA,
 		})
-		self.rev = 0
+		self.revision = 0
 		self.op_handler = {}
 		self._threaded = True
-		
 		
 		if client_name in ['android', 'android2']:
 			self.fetch = self.fetchOps
@@ -34,7 +33,7 @@ class Poll(Connection):
 				setattr(self, k, v)
 			except:
 				pass
-				
+		self.revision = self.rev
 		self.setupConnection()
 		
 	def setupConnection(self):
@@ -60,15 +59,18 @@ class Poll(Connection):
 	
 	async def execute(self, coro, *args):
 		await coro(*args)
-				
-	async def streams(self, limit=25):
+	
+	async def setRevision(self, revision):
+		self.revision = max(revision, self.revision)
+		
+	async def streams(self, limit=1):
 		while True:
 			try:
-				ops = await self.fetch(self.rev, limit)
+				ops = await self.fetch(self.revision, limit)
 				for op in ops:
-					self.rev = max(self.rev, op.revision)
+					self.revision = max(self.revision, op.revision)
 					for handle, hFuncs in self.op_handler.items():
-						if handle == -1:
+						if handle == op.type:
 							for hFunc in hFuncs:
 								for k, v in hFunc.items():
 									if hFunc[k] is not None and isinstance(hFunc[k], Filter):
@@ -77,16 +79,7 @@ class Poll(Connection):
 									elif hFunc[k] is None:
 										await self.execute(k, op)
 						else:
-							if handle == op.type:
-								for hFunc in hFuncs:
-									for k, v in hFunc.items():
-										if hFunc[k] is not None and isinstance(hFunc[k], Filter):
-											if hFunc[k](op.message):
-												await self.execute(k, op.message)
-										elif hFunc[k] is None:
-											await self.execute(k, op)
-							else:
-								continue
+							continue
 			except EOFError:
 				continue
 			except Exception:

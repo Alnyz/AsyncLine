@@ -53,6 +53,7 @@ class Filters:
 	#Messages
 	text = create("Text", lambda _,m: bool(m.contentType == 0 and m.text is not None))
 	"""Filter text messages."""
+	
 	image = create("Image", lambda _,m: bool(m.contentType == 1))
 	"""Filter message that contain object Image"""
 	
