@@ -263,7 +263,7 @@ class Talk(object):
 		"""
 		mids = mids if isinstance(mids, (list, tuple)) else [mids]
 		if len(mids) <= 1:
-			return await self.auth.call("getContact", mids[0])
+			await self.auth.call("getContact", mids[0])
 		else:
 			return await self.auth.call("getContacts", mids)
 	
