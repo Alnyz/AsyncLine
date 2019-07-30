@@ -115,7 +115,7 @@ class Talk(object):
 		Use this method for change your Settings Attribute.
 		
 		Args:
-			profile_obj: profile obj from <class 'LineSync.lib.Gen.ttypes.Settings'>
+			settings_obj: settings obj from <class 'LineSync.lib.Gen.ttypes.Settings'>
 			
 		Return:
 			bool == false, because this will returning NoneType as False
