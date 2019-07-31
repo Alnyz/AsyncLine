@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("README.md", "r") as f:
 	long_description = f.read()
@@ -7,7 +7,6 @@ install_requires = [
 	'frugal',
 	'rsa',
 	'ujson',
-	'nats',
 	'requests',
 	'async_timeout',
 	'aiohttp',
@@ -15,19 +14,20 @@ install_requires = [
 	'asyncio-nats-client'
 ]
 
-packages = [
-	'LineSync',
-]
+#packages = [
+	#'AsyncLine',
+	#'AsyncLine.lib',
+#]
 
 setup(
-	name='LineNext',
-	version='1.3',
+	name='AsyncLine',
+	version='1.5.5',
 	long_description=long_description,
 	long_description_content_type="text/markdown",
 	description='LINE Unofficial Python Library with Asyncio support and C++ Binding',
 	author="Anysz, Doodspav, Dyseo",
 	author_email="katro.coplax@gmail.com",
-	packages=packages,
+	packages=find_packages(),
 	license='MIT',
 	install_requires=install_requires,
 	classifiers=[
@@ -37,10 +37,10 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7"
-        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Programming Language :: Python :: 3.7",
         "Topic :: Utilities",
         "Topic :: Internet",
-        "Topic :: Multimedia :: Video"
+        "Topic :: Multimedia :: Video",
+        "Topic :: Software Development :: Libraries :: Python Modules"
     ]
 )

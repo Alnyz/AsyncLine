@@ -1,6 +1,5 @@
 frugal
 rsa
-ujson
 requests
 async_timeout
 aiohttp
