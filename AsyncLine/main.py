@@ -31,34 +31,28 @@ class LineNext(object):
 		self.poll = Poll(client_name)
 		self.auth.remote(self.poll.afterLogin)
 		self._session = requests.Session()
-		
-		
-	def __validate(self, mail, passwd, cert, token, qr):
-		if mail is not None and passwd is not None and cert is None:
-			SyncAsync(self.auth.loginWithCredential(mail, passwd, callback=callback)).run()
-		elif mail is not None and passwd is not None and cert is not None:
-			SyncAsync(self.auth.loginWithCredential(mail, passwd, cert, callback=callback)).run()
-		elif token is not None:
-			SyncAsync(self.auth.loginWithAuthToken(token)).run()
-		elif qr is True:
-			SyncAsync(self.auth.loginWithQrcode(callback=callback)).run()
-		
-		self.headers = {
-				"User-Agent": self.auth.UA,
-				"X-Line-Application": self.auth.LA,
-				"X-Line-Access":self.auth.authToken,
-				"x-lal":"in_ID"
-			}
 	
+	def __validate(self, name):
+		f = SyncAsync(self.auth.createLoginSession(name)).run()
+		if not f:
+			return
+		else:
+			self.headers = {
+					"User-Agent": self.auth.UA,
+					"X-Line-Application": self.auth.LA,
+					"X-Line-Access":self.auth.authToken,
+					"x-lal":"in_ID"
+				}
+		
 	def afterLogin(self, *args, **kws):
 		for k,v in kws.items():
 			try:
 				setattr(self, k, v)
 			except:
 				pass
-			
-	def login(self, mail=None, passwd=None, cert=None, token=None, qr=False):
-		self.__validate(mail, passwd, cert, token, qr)
+	
+	def login(self, name):
+		self.__validate(name)
 		
 	def save_file(self, path, raw):
 		with open(path, "wb") as f:
@@ -74,13 +68,11 @@ class LineNext(object):
 	async def get_content(self, url, headers=None, *args, **kwgs):
 		if headers is None:
 			headers = self.headers
-		
 		return self._session.get(url, headers=headers, stream=True, *args, **kwgs)
 	
 	async def post_content(self, url, data = None, files = None, headers = None, *args, **kwgs):
 		if headers is None:
 			headers = self.headers
-
 		return self._session.post(url, data=data, files=files, headers=headers, *args, **kwgs)
 	
 	def generate_tempFile(self, returnAs='path'):

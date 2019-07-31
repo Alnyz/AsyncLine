@@ -1,7 +1,7 @@
 # ![Logo](LINE.png) AsyncLine 🚀
 _Unofficially Line bot Messaging using Asynchronous_
 
-[![python3.x](https://img.shields.io/badge/3.6%20%7C%203.7-blue.svg?&logo=python&label=Python)](https://www.python.org/downloads/release/python-372/) [![License](https://img.shields.io/github/license/dyseo/A.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://travis-ci.org/dyseo/AsyncLine.svg?branch=master)](https://travis-ci.org/dyseo/AsyncLine) [![Version](https://img.shields.io/badge/Version-1.5-red)](https://github.com/dyseo/AsyncLine)
+[![python3.x](https://img.shields.io/badge/3.6%20%7C%203.7-blue.svg?&logo=python&label=Python)](https://www.python.org/downloads/release/python-372/) [![License](https://img.shields.io/github/license/dyseo/A.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://travis-ci.org/dyseo/AsyncLine.svg?branch=master)](https://travis-ci.org/dyseo/AsyncLine) [![Version](https://img.shields.io/badge/Version-1.5.7-red)](https://github.com/dyseo/AsyncLine)
 ___
 
 ## Important
@@ -15,7 +15,7 @@ Please be warned: `AsyncLine` is in a very early beta. You will encounter bugs w
 - Installing from [PyPi](https://pypi.org/project/AsyncLine/1.5.5/)
 
 ## Installation
-- `pip3 install AsyncLine`
+- `pip3 install AsyncLine --upgrade`
 
 or clone this repository
 
@@ -29,11 +29,7 @@ from AsyncLine import LineNext
 import asyncio
 
 client = LineNext('ios')
-client.login(qr=True)
-
-#print authToken for next login with authToken 
-#e.g; client.login(token='your auth token')
-print(client.authToken)
+client.login(name='your session name')
 
 #Run bot
 loop = asyncio.get_event_loop()
@@ -45,7 +41,7 @@ Please read [Example](examples) for more detail about usage this lib
 Dyseo / [Line](https://line.me/ti/p/~line.bngsad)
 
 ## Base Source
-[Anysz](https://github.com/anysz)
+Asynz / [Anysz](https://github.com/anysz)
 
 
 ## Getting Error

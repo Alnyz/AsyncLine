@@ -4,7 +4,7 @@ from . import config as Config
 from .lib.Gen.ttypes import *
 from typing import Union, Any
 
-import asyncio
+import asyncio, json
 
 class Talk(object):
 	def __init__(self, client, auth):
@@ -34,7 +34,7 @@ class Talk(object):
 		A simple method for get your infomations. Requires no parameters.
 		
 		Return:
-			class <class 'LineSync.lib.Gen.ttypes.Profile'>
+			class <class 'AsyncLine.lib.Gen.ttypes.Profile'>
 		"""
 		return await self.auth.call("getProfile")
 	
@@ -43,7 +43,7 @@ class Talk(object):
 		A simple method for testing your Settings. Requires no parameters.
 		
 		Return:
-			class <class 'LineSync.lib.Gen.ttypes.Settings'>
+			class <class 'AsyncLine.lib.Gen.ttypes.Settings'>
 		"""
 		return await self.auth.call("getSettings")
 	
@@ -52,7 +52,7 @@ class Talk(object):
 		A simple method for create your ticket. Requires no parameters.
 		
 		Return:
-			class <class 'LineSync.lib.Gen.ttypes.Ticket'>
+			class <class 'AsyncLine.lib.Gen.ttypes.Ticket'>
 		"""
 		return await self.auth.call("getUserTicket")
 		
@@ -66,7 +66,7 @@ class Talk(object):
 			expirationTime: number for your Ticket until this expiration
 			maxUseCount: number for set max user can used your Ticket
 		Return:
-			class <class 'LineSync.lib.Gen.ttypes.Ticket'>
+			class <class 'AsyncLine.lib.Gen.ttypes.Ticket'>
 		"""
 		try:
 			return await self.getUserTicket()
@@ -103,7 +103,7 @@ class Talk(object):
 		Use this method for change your Profile Attribute.
 		
 		Args:
-			profile_obj: profile obj from <class 'LineSync.lib.Gen.ttypes.Profile'>
+			profile_obj: profile obj from <class 'AsyncLine.lib.Gen.ttypes.Profile'>
 			
 		Return:
 			bool == false, because this will returning NoneType as False
@@ -115,7 +115,7 @@ class Talk(object):
 		Use this method for change your Settings Attribute.
 		
 		Args:
-			settings_obj: settings obj from <class 'LineSync.lib.Gen.ttypes.Settings'>
+			settings_obj: settings obj from <class 'AsyncLine.lib.Gen.ttypes.Settings'>
 			
 		Return:
 			bool == false, because this will returning NoneType as False
@@ -127,7 +127,7 @@ class Talk(object):
 		Use this method for change your ProfileAttribute.
 		
 		Args:
-			attribute: int of ProfileAttribute <class 'LineSync.lib.Gen.ttypes.ProfileAttribute>
+			attribute: int of ProfileAttribute <class 'AsyncLine.lib.Gen.ttypes.ProfileAttribute>
 					ALL = 511
 					EMAIL = 1
 					DISPLAY_NAME = 2
@@ -151,7 +151,7 @@ class Talk(object):
 		Use this method to Update your ContactSettings.
 		
 		Args:
-			attribute: int of ContactSettings <class 'LineSync.lib.Gen.ttypes.ProfileAttribute>
+			attribute: int of ContactSettings <class 'AsyncLine.lib.Gen.ttypes.ProfileAttribute>
 					CONTACT_SETTING_NOTIFICATION_DISABLE = 1
 					CONTACT_SETTING_DISPLAY_NAME_OVERRIDE = 2
 					CONTACT_SETTING_CONTACT_HIDE = 4.
@@ -257,7 +257,7 @@ class Talk(object):
                more than one Contact at once.
 		
 		Return:
-			<class 'LineSync.lib.Gen.ttypes.Contact>
+			<class 'AsyncLine.lib.Gen.ttypes.Contact>
 			or
 			<class 'list'>
 		"""
@@ -333,7 +333,7 @@ class Talk(object):
 			user_id: pass string of user id
             
            Return:
-           	<class 'LineSync.lib.Gen.ttypes.Contact'>
+           	<class 'AsyncLine.lib.Gen.ttypes.Contact'>
 		"""
 		return await self.auth.call("findContactByUserid", user_id)
 		
@@ -346,7 +346,7 @@ class Talk(object):
 			ticket: pass string of user id
             
            Return:
-           	<class 'LineSync.lib.Gen.ttypes.Contact'>
+           	<class 'AsyncLine.lib.Gen.ttypes.Contact'>
 		"""
 		return await self.auth.call("findContactByUserTicket", ticket)
 	
@@ -408,7 +408,7 @@ class Talk(object):
 							for getting more than once
 		
 		Return:
-			<class 'LineSync.lib.Gen.ttypes.Group'> if group_ids only one
+			<class 'AsyncLine.lib.Gen.ttypes.Group'> if group_ids only one
 			if list returned <class 'list'>
 		"""
 		ids = group_ids if isinstance(group_ids, list) else [group_ids]
@@ -425,7 +425,7 @@ class Talk(object):
 			group_id: string of group_id
 			
 		Return:
-			<class 'LineSync.lib.Gen.ttypes.Group'>
+			<class 'AsyncLine.lib.Gen.ttypes.Group'>
 		"""
 		return await self.auth.call("getGroupWithoutMembers", group_id)
 		
@@ -439,7 +439,7 @@ class Talk(object):
 			group_id: string of group_id
 			
 		Return:
-			<class 'LineSync.lib.Gen.ttypes.Group'>
+			<class 'AsyncLine.lib.Gen.ttypes.Group'>
 			or <class 'list'>
 		"""
 		return await self.auth.call("getGroupsV2", group_id)
@@ -453,7 +453,7 @@ class Talk(object):
 			group_id: string of group id
 			
 		Return:
-			<class 'LineSync.lib.Gen.ttypes.Group'>
+			<class 'AsyncLine.lib.Gen.ttypes.Group'>
 		"""
 		return await self.auth.call("getCompactGroup", group_id)
 	
@@ -575,7 +575,7 @@ class Talk(object):
 		
 		Args:
 			group_id: string of id from group id
-			attribute: dict of attribute from {<class 'LineSync.lib.Gen.ttypes.GroupPreferenceAttribute'>, string}
+			attribute: dict of attribute from {<class 'AsyncLine.lib.Gen.ttypes.GroupPreferenceAttribute'>, string}
 							INVITATION_TICKET = 1
 							FAVORITE_TIMESTAMP = 2
 							
@@ -590,7 +590,7 @@ class Talk(object):
 		Use this method to update Group attribute
 		
 		Args:
-			obj: object from Group classes <class 'LineSync.lib.Gen.ttypes.Group'>
+			obj: object from Group classes <class 'AsyncLine.lib.Gen.ttypes.Group'>
 			
 			e.g:
 				group = client.getGroup(group_id)
@@ -612,7 +612,7 @@ class Talk(object):
 			room_id: string of room_id
 			
 		Return:
-			<class 'LineSync.lib.Gen.ttypes.Room'>
+			<class 'AsyncLine.lib.Gen.ttypes.Room'>
 		"""
 		return await self.auth.call("getRoom", room_id)
 		
@@ -625,7 +625,7 @@ class Talk(object):
 			room_id: string of room_id
 			
 		Return:
-			<class 'LineSync.lib.Gen.ttypes.Room'>
+			<class 'AsyncLine.lib.Gen.ttypes.Room'>
 		"""
 		return await self.auth.call("getCompactRoom", room_id)
 	
@@ -655,7 +655,63 @@ class Talk(object):
 			bool == False, because this will returning NoneType as False
 		"""
 		return await self.auth.call("leaveRoom", 0, room_id)
+	
+	async def sendMention(self,
+								group_id: str,
+								mids: list = [],
+								separator: str = "\n",
+								first_text: str = None,
+								end_text: str = None,
+								enum: bool = False,
+								pretty: bool = True):
+		"""
+		Use this method to Send Mention to all or some user.
 		
+		Args:
+			group_id: string from group_id or room_id
+			mids: string of list from user mids at group
+			separator: (string | None, optional) of separator to separate each line of mention
+			first_text: (string | None, optional) of texts that will be on top mentioning
+			end_text: (string | None, optional) of text that will be on end line of mentioning
+			pretty: bool if True mention will be output pretty readable
+			enum: bool if True mention will be separate with numerate 
+					i.e;
+						1. @user1
+						2. @user2
+						if separator is not None and enum is True this will output like
+						- 1. @user1
+						- 2. @user2
+						using "-" as separator
+		Return:
+			<class 'bool'> or <class 'AsyncLine.lib.Gen.ttypes.Room'>
+		"""
+		lenght_mids = len(mids)//20+1
+		text = '' if first_text is None else first_text
+		mention = '@m{}'.format('\n' if pretty else ' ')
+		for count in range(lenght_mids):
+			mentionees = []
+			if enum:
+				for no, mid in enumerate(mids[count*20:(count+1)*20], 1):
+					text += '{} {}. {}'.format(separator, no, mention)
+					slen = len(text) - 3
+					elen = len(text) + 3
+					mentionees.append({'S': str(slen), 'E': str(elen - 4), 'M': mid})
+					if mid == mids[-1]:
+						text += '' if end_text is None else end_text
+			else:
+				for mid in mids[count*20:(count+1)*20]:
+					text += '%s %s' % (separator, mention)
+					slen = len(text) - 3
+					elen = len(text) + 3
+					mentionees.append({'S': str(slen), 'E': str(elen - 4), 'M': mid})
+					if mid == mids[-1]:
+						text += '' if end_text is None else end_text
+			if text:
+				if text.endswith("\n"):
+					text = text[:-1]
+				await self.sendMessage(group_id, text, {'MENTION': json.dumps({'MENTIONEES': mentionees})}, 0)
+			text = ""
+			
 	async def sendMessage(self,
 						group_id: str,
 						text: str,
@@ -669,10 +725,10 @@ class Talk(object):
 			group_id: string of mid from group id
 			text: string of some text
 			contentMetadata: dict of contentMetadata for sending
-			contentType: int of contentType see <class 'LineSync.lib.Gen.ttypes.ContentType'>
+			contentType: int of contentType see <class 'AsyncLine.lib.Gen.ttypes.ContentType'>
 		
 		Return:
-			<class 'LineSync.lib.Gen.ttypes.Message'>
+			<class 'AsyncLine.lib.Gen.ttypes.Message'>
 		"""	
 		msg = Message(to=group_id,
 							text = text,
@@ -688,7 +744,7 @@ class Talk(object):
 		Use this method to get mid of user using Mention
 		
 		Args:
-			message: <class 'LineSync.lib.Gen.ttypes.Message'>
+			message: <class 'AsyncLine.lib.Gen.ttypes.Message'>
 			
 			e.g
 			async def _(op):

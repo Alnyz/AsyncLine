@@ -6,6 +6,7 @@ from .filters import Filter
 from .connections import Connection
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from thrift.transport.TTransport import TTransportException
 
 class Poll(Connection):
 	def __init__(self, client_name):
@@ -82,5 +83,7 @@ class Poll(Connection):
 							continue
 			except EOFError:
 				continue
+			except TTransportException:
+				break
 			except Exception:
 				print(traceback.format_exc())

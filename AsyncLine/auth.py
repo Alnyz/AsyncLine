@@ -102,18 +102,43 @@ class Auth(Connection):
 			'X-Line-Access': verifier
 		})
 		return r
-
-	async def loginWithQrcode(self, longAlive=True, callback=lambda x: print(x), debug=False):
+	
+	async def createLoginSession(self, name):
+		path = name + ".session"
+		choses = ["qr", "email"]
+		if not os.path.exists(path):
+			print("Cannot find last session, trying to create")
+			await asyncio.sleep(1)
+			c = input("Choose what you want to login (qr or email): ")
+			while True:
+				if c not in choses:
+					print("Wrong input %s please input qr or email" % c)
+					return False
+					break
+				elif c == "qr":
+					await self.loginWithQrcode(path)
+				elif c == "email":
+					mail = input("Input your email: ")
+					password = input("Input your password: ")
+					await self.loginWithCredential(mail=mail, password=password, path=path)
+				print("Loggin succes with %s" % c)
+				break
+		else:
+			print("Skipping loggin session, found last session trying login..")
+			with open(path, "r") as fp:
+				auth = fp.read()
+				if "auth" in auth:
+					token = auth.split(">")[1]
+					await self.loginWithAuthToken(authToken=token)
+					print("Loggin session succes as %s " % name)
+			return True
+				
+	async def loginWithQrcode(self, path=None, callback=lambda x: print(x)):
 		self.url(config.MAIN_PATH)
 		qr = await self.call('getAuthQrcode', True, config.LOGIN_DEVICE_NAME, "")
-		if debug:
-			print('QR wait for: ', qr.verifier)
 		callback("line://au/q/"+qr.verifier)
 		r = self.waitForPhoneConfirm(qr.verifier)
 		vr = r.json()['result']['verifier']
-		if debug:
-			print('QR Ready:', vr)
-			input('Press enter to continue...')
 		self.url(config.AUTH_PATH)
 		rq = LoginRequest(
 			LoginType.QRCODE,
@@ -129,21 +154,21 @@ class Auth(Connection):
 			2
 		)
 		lr = await self.call('loginZ', rq)
-		if debug:
-			print(lr)
 		self.updateHeaders({
 			'x-line-access': lr.authToken
 		})
 		self.authToken = lr.authToken
 		self.cert = lr.certificate
+		if path:
+			with open(path, "w") as fp:
+				text = "auth > {}".format(lr.authToken)
+				fp.write(text)
 		await self.afterLogin()
 
-
-	async def loginWithCredential(self, mail, password, cert=None, callback=lambda x: print(x)):
+	async def loginWithCredential(self, mail, password, cert=None, callback=lambda x: print(x), path=None):
 		self.url(config.MAIN_PATH)
 		rsakey = await self.call('getRSAKeyInfo', config.LOGIN_PROVIDER)
 		crypt  = self._encryptedEmailAndPassword(mail, password, rsakey)
-
 		self.url(config.AUTH_PATH)
 		rq = LoginRequest(
 			LoginType.ID_CREDENTIAL,
@@ -161,8 +186,8 @@ class Auth(Connection):
 		result = await self.call('loginZ', rq)
 		self.url(config.MAIN_PATH)
 		if result.type == 3:
-			callback("%s %s"% (result.verifier,result.pinCode) )
-			r = self.waitForPhoneConfirm( result.verifier )
+			callback("Please confirm this code on your device %s"% (result.pinCode))
+			r = self.waitForPhoneConfirm(result.verifier)
 			rq = LoginRequest(
 				LoginType.QRCODE,
 				IdentityProvider.LINE,
@@ -180,10 +205,18 @@ class Auth(Connection):
 			})
 			self.authToken = result.authToken
 			self.cert = result.certificate
+			if path is not None:
+				with open(path, "w") as fp:
+					text = "auth > {}".format(result.authToken)
+					fp.write(text)
 			self.url(config.MAIN_PATH)
 		elif result.type == 1:
 			self.authToken = result.authToken
 			self.cert = result.certificate
+			if path is not None:
+				with open(path, "w") as fp:
+					text = "auth > {}".format(result.authToken)
+					fp.write(text)
 			self.updateHeaders({
 				'x-line-access': result.authToken
 			})
