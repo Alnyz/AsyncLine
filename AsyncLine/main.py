@@ -12,7 +12,6 @@ import os
 import base64
 import re
 import requests
-import shutil
 import time
 import json
 import tempfile
@@ -47,7 +46,8 @@ class LineNext(object):
 		self.headers = {
 				"User-Agent": self.auth.UA,
 				"X-Line-Application": self.auth.LA,
-				"X-Line-Access":self.auth.authToken
+				"X-Line-Access":self.auth.authToken,
+				"x-lal":"in_ID"
 			}
 	
 	def afterLogin(self, *args, **kws):
@@ -62,7 +62,7 @@ class LineNext(object):
 		
 	def save_file(self, path, raw):
 		with open(path, "wb") as f:
-			shutil.copyfileobj(raw, f)
+			f.write(raw)
 		
 	def delete_file(self, path):
 		if os.path.exists(path):
@@ -98,7 +98,9 @@ class LineNext(object):
 		
 		r = await self.get_content(url, headers=headers)
 		if r.ok:
-			self.save_file(path, r.raw)
+			for chunk in r.iter_content(chunk_size=16*1024*1024):
+				if chunk:
+					self.save_file(path, chunk)
 			if return_as == "path":
 				return path
 			if return_as == "bin":
@@ -140,7 +142,9 @@ class LineNext(object):
 		uri = config.OBS_URL + '/talk/m/download.nhn?' + urllib.parse.urlencode(params)
 		r = await self.get_content(uri)
 		if r.ok:
-			self.save_file(path, r.raw)
+			for chunk in r.iter_content(chunk_size=16*1024*1024):
+				if chunk:
+					self.save_file(path, chunk)
 			if return_as == "path":
 				return path
 			elif return_as == "bool":
