@@ -1,5 +1,8 @@
 from setuptools import setup
 
+with open("README.me", "r") as f:
+	long_description = f.read()
+	
 install_requires = [
 	'frugal',
 	'rsa',
@@ -18,9 +21,12 @@ packages = [
 
 setup(
 	name='LineNext',
-	version='1.0', 
-	description='LINE Unofficial Python Library with Async support and C++ Binding',
+	version='1.3',
+	long_description=long_description,
+	long_description_content_type="text/markdown",
+	description='LINE Unofficial Python Library with Asyncio support and C++ Binding',
 	author="Anysz, Doodspav, Dyseo",
+	author_email="katro.coplax@gmail.com",
 	packages=packages,
 	license='MIT',
 	install_requires=install_requires,
