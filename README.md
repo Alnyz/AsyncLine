@@ -8,15 +8,17 @@ ___
 Please be warned: `AsyncLine` is in a very early beta. You will encounter bugs when using it. In addition, there are very many rough edges. With that said, please try it out in your applications: I need your feedback to fix the bugs and file down the rough edges.
 
 ## Features
--  [x] Fully Asynchronously
--  [ ] Optional using threads (removed for some reasons)
--  [x] Safe-Thread thrift
--  [x] Slightly faster (make it sure)
--  [x] Easy to use
--  [ ] Installed from pip soon.
+- Fully Asynchronously
+- Safe-Thread thrift
+- Slightly faster (make it sure)
+- Easy to use
 
 ## Installation
-1. clone this repository `git clone https://github.com/dyseo/AsyncLine`
+- `pip3 install AsyncLine`
+
+or clone this repository
+
+1. `git clone https://github.com/dyseo/AsyncLine`
 2. `cd AsyncLine`
 3. `pip3 install -r requirements.txt`
 
