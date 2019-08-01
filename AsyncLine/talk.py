@@ -7,6 +7,8 @@ from typing import Union, Any
 import asyncio, json
 
 class Talk(object):
+	_unsendMessageReq = 0
+
 	def __init__(self, client, auth):
 		self.auth = auth
 		self.client = client
@@ -711,7 +713,7 @@ class Talk(object):
 					text = text[:-1]
 				await self.sendMessage(group_id, text, {'MENTION': json.dumps({'MENTIONEES': mentionees})}, 0)
 			text = ""
-			
+
 	async def sendMessage(self,
 						group_id: str,
 						text: str,
@@ -738,6 +740,42 @@ class Talk(object):
 							else contentMetadata
 						)
 		return await self.auth.call("sendMessage", 0, msg)
+
+	async def sendReply(self,
+						message_id: str,
+						group_id: str,
+						text: str,
+						contentMetadata: Union[dict] = None,
+						contentType: int = 0
+					) -> Union[str, Message]:
+		"""
+		Use this method to sending Reply Message containt any types
+		
+		Args:
+			message_id: string of your message id
+			group_id: string of mid from group id
+			text: string of some text
+			contentMetadata: dict of contentMetadata for sending
+			contentType: int of contentType see <class 'AsyncLine.lib.Gen.ttypes.ContentType'>
+		
+		Return:
+			<class 'AsyncLine.lib.Gen.ttypes.Message'>
+		"""	
+		msg = Message(to=group_id,
+							text = text,
+							relatedMessageServiceCode = 1,
+							messageRelationType = 3,
+							relatedMessageId = message_id,
+							contentType =  contentType,
+							contentMetadata = {'LINE_RECV':'1'} 
+							if contentMetadata is None \
+							else contentMetadata
+						)
+		return await self.auth.call("sendMessage", 0, msg)
+
+	async def unsendMessage(self, message_id: str) -> bool:
+		self._unsendMessageReq += 1
+		return await self.auth.call("unsendMessage", self._unsendMessageReq, message_id)
 		
 	async def getMidWithTag(self, message: Message) -> list:
 		"""
