@@ -713,7 +713,7 @@ class Talk(object):
 					text = text[:-1]
 				await self.sendMessage(group_id, text, {'MENTION': json.dumps({'MENTIONEES': mentionees})}, 0)
 			text = ""
-
+			
 	async def sendMessage(self,
 						group_id: str,
 						text: str,
@@ -742,7 +742,7 @@ class Talk(object):
 		return await self.auth.call("sendMessage", 0, msg)
 
 	async def sendReply(self,
-						message_id: str,
+						relatedMessage_id: str,
 						group_id: str,
 						text: str,
 						contentMetadata: Union[dict] = None,
@@ -752,7 +752,7 @@ class Talk(object):
 		Use this method to sending Reply Message containt any types
 		
 		Args:
-			message_id: string of your message id
+			relatedMessage_id: string of your message id
 			group_id: string of mid from group id
 			text: string of some text
 			contentMetadata: dict of contentMetadata for sending
@@ -765,7 +765,7 @@ class Talk(object):
 							text = text,
 							relatedMessageServiceCode = 1,
 							messageRelationType = 3,
-							relatedMessageId = message_id,
+							relatedMessageId = relatedMessage_id,
 							contentType =  contentType,
 							contentMetadata = {'LINE_RECV':'1'} 
 							if contentMetadata is None \
@@ -774,6 +774,15 @@ class Talk(object):
 		return await self.auth.call("sendMessage", 0, msg)
 
 	async def unsendMessage(self, message_id: str) -> bool:
+		"""
+		Use this method to unsend Message containt any types
+
+		Args:
+			message_id: string of your message id
+
+		Return:
+			bool == False, because this will returning NoneType as False
+		"""
 		self._unsendMessageReq += 1
 		return bool(await self.auth.call("unsendMessage", self._unsendMessageReq, message_id))
 		
