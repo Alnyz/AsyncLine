@@ -40,7 +40,7 @@ class LineNext(object):
 			self.headers = {
 					"User-Agent": self.auth.UA,
 					"X-Line-Application": self.auth.LA,
-					"X-Line-Access":self.auth.authToken,
+					"X-Line-Access":self.auth.authToken.strip(),
 					"x-lal":"in_ID"
 				}
 		
