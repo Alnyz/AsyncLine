@@ -775,7 +775,7 @@ class Talk(object):
 
 	async def unsendMessage(self, message_id: str) -> bool:
 		self._unsendMessageReq += 1
-		return await self.auth.call("unsendMessage", self._unsendMessageReq, message_id)
+		return bool(await self.auth.call("unsendMessage", self._unsendMessageReq, message_id))
 		
 	async def getMidWithTag(self, message: Message) -> list:
 		"""
