@@ -1,8 +1,41 @@
-# ![Logo](LINE.png) AsyncLine 🚀
-_Unofficially Line bot Messaging using Asynchronous_
+<p align="center">
+    <a href="https://github.com/dyseo/AsyncLine">
+        <img src="https://i.imgur.com/cC3IzAL.png" alt="AsyncLine">
+    </a>
+    <br>
+    <b>Line Messaging API for Python</b>
+    <br>
+    <a href="https://pypi.org/project/AsyncLine">
+        PyPi
+    </a>
+    •
+    <a href="https://github.com/dyseo/AsyncLine/releases">
+        Releases
+    </a>
+    •
+    <a href="https://line.me/ti/g2/KeQQBF78pOLSfe4uaS--Ew">
+        Community
+    </a>
+</p>
 
-[![python3.x](https://img.shields.io/badge/3.6%20%7C%203.7-blue.svg?&logo=python&label=Python)](https://www.python.org/downloads/release/python-372/) [![License](https://img.shields.io/github/license/dyseo/A.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://travis-ci.org/dyseo/AsyncLine.svg?branch=master)](https://travis-ci.org/dyseo/AsyncLine) [![Version](https://img.shields.io/badge/Version-1.5.7-red)](https://github.com/dyseo/AsyncLine)
-___
+<h3 align="center"> 
+  <a href="https://python.org"> 
+    <img src="https://img.shields.io/badge/3.6%20%7C%203.7-blue.svg?&logo=python&label=Python" alt="Python">
+  </a>
+  .
+  <a href="https://opensource.org/licenses/MIT"> 
+    <img src="https://img.shields.io/github/license/dyseo/A.svg" alt="License">
+  </a>
+  .
+  <a href="https://travis-ci.org/dyseo/AsyncLine.svg?branch=master">
+    <img src="https://travis-ci.org/dyseo/AsyncLine.svg?branch=master" alt="Build">
+  </a>
+  .
+  <a href="https://github.com/dyseo/AsyncLine">
+    <img src="https://img.shields.io/badge/Version-1.5.7-red" alt="Version">
+  <a/>
+</h3>
+  
 
 ## Important
 Please be warned: `AsyncLine` is in a very early beta. You will encounter bugs when using it. In addition, there are very many rough edges. With that said, please try it out in your applications: I need your feedback to fix the bugs and file down the rough edges.
