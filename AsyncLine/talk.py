@@ -713,7 +713,43 @@ class Talk(object):
 					text = text[:-1]
 				await self.sendMessage(group_id, text, {'MENTION': json.dumps({'MENTIONEES': mentionees})}, 0)
 			text = ""
-			
+	async def sendLocation(self,
+						group_id: str,
+						address: str,
+						latitude: float,
+						longitude: float,
+						phone: Union[str, int] = None,
+						contentMetadata: Union[dict] = None,
+						contentType: int = 0
+					) -> Union[str, Message]:
+		"""
+		Use this method to sending a Location
+		
+		Args:
+		 group_id: string of mid from group id
+		 address: string of your address location
+		 latitude: float of your address latitude
+		 longitude: float of your address longitude
+		 phone: string or integer of your number
+		 contentMetadata: dict of contectMetadata for sending
+		 contentType: int of contentType see <class 'AsyncLine.lib.Gen.ttypes.ContentType'>
+		"""
+		location = Location(address=address,
+													phone=phone,
+													latitude=latitude,
+													longitude=longitude,
+													title='Location'
+												)
+											
+		msg = Message(to=group_id,
+										text = 'Location by AsyncLine',
+										contentType =  contentType,
+										contentMetadata = {'LINE_RECV':'1'}
+										if contentMetadata is None \
+										else contentMetadata,
+										location = location
+								)
+		return await self.auth.call("sendMessage", 0, msg)
 	async def sendMessage(self,
 						group_id: str,
 						text: str,
