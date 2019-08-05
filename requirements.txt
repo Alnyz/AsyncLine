@@ -1,0 +1,7 @@
+frugal
+rsa
+requests
+async_timeout
+aiohttp
+aiostomp
+asyncio-nats-client
