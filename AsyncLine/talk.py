@@ -3,21 +3,31 @@ from .auth import Auth
 from . import config as Config
 from .lib.Gen.ttypes import *
 from typing import Union, Any
-
+from .connections import Connection
 import asyncio, json
-
-class Talk(object):
+	
+class Talk(Connection):
 	_unsendMessageReq = 0
 
 	def __init__(self, client, auth):
+		super().__init__("/S4")
 		self.auth = auth
-		self.client = client
-			
+		self.cl = client
+		self.updateHeaders({
+			'user-agent': self.auth.UA,
+			'x-line-application': self.auth.LA,
+		})
+		
 	def afterLogin(self, *args, **kws):
 		for k,v in kws.items():
-			try: setattr(self, k, v)
-			except: pass
-			
+			try:
+				setattr(self, k, v)
+			except:
+				pass
+		self.updateHeaders({
+			"X-Line-Access": self.authToken
+		})
+		
 	async def acquireEncryptedAccessToken(self, featureType: int = 2) -> str:
 		"""
 		Use this method for get your Encryption Token.
@@ -29,7 +39,7 @@ class Talk(object):
 		Return:
 			class :str:
 		"""
-		return await self.auth.call("acquireEncryptedAccessToken", featureType)
+		return await self.call("acquireEncryptedAccessToken", featureType)
 		
 	async def getProfile(self) -> Profile:
 		"""
@@ -38,7 +48,7 @@ class Talk(object):
 		Return:
 			class <class 'AsyncLine.lib.Gen.ttypes.Profile'>
 		"""
-		return await self.auth.call("getProfile")
+		return await self.call("getProfile")
 	
 	async def getSettings(self) -> Settings:
 		"""
@@ -47,7 +57,7 @@ class Talk(object):
 		Return:
 			class <class 'AsyncLine.lib.Gen.ttypes.Settings'>
 		"""
-		return await self.auth.call("getSettings")
+		return await self.call("getSettings")
 	
 	async def getUserTicket(self) -> Union[str, Ticket]:
 		"""
@@ -56,7 +66,7 @@ class Talk(object):
 		Return:
 			class <class 'AsyncLine.lib.Gen.ttypes.Ticket'>
 		"""
-		return await self.auth.call("getUserTicket")
+		return await self.call("getUserTicket")
 		
 	async def generateUserTicket(self,
 										expirationTime: int = 100,
@@ -76,17 +86,17 @@ class Talk(object):
 			await self.reissueUserTicket(expirationTime,  maxUseCount)
 			return await self.getUserTicket()
 	
-	async def reissueGroupTicket(self, group_id: str) -> str:
+	async def reissueGroupTicket(self, chat_id: str) -> str:
 		"""
 		Use this method for getting group Ticket.
 		
 		Args:
-			group_id: string of group_id
+			chat_id: string of chat_id
 			
 		Return:
 			class :str:
 		"""
-		return await self.auth.call("reissueGroupTicket", group_id)
+		return await self.call("reissueGroupTicket", chat_id)
 		
 	async def reissueUserTicket(self, expirationTime: int = 100, maxUseCount: int = 10) -> str:
 		"""
@@ -98,7 +108,7 @@ class Talk(object):
 		Return:
 			class :str:
 		"""
-		return await self.auth.call("reissueUserTicket", expirationTime, maxUseCount)
+		return await self.call("reissueUserTicket", expirationTime, maxUseCount)
 
 	async def updateProfile(self, profile_obj: Profile) -> bool:
 		"""
@@ -110,7 +120,7 @@ class Talk(object):
 		Return:
 			bool == false, because this will returning NoneType as False
 		"""
-		return bool(await self.auth.call("updateProfile", 0, profile_obj))
+		return bool(await self.call("updateProfile", 0, profile_obj))
 	
 	async def updateSettings(self, settings_obj: Settings) -> bool:
 		"""
@@ -122,7 +132,7 @@ class Talk(object):
 		Return:
 			bool == false, because this will returning NoneType as False
 		"""
-		return bool(await self.auth.call("updateSettings", 0, settings_obj))
+		return bool(await self.call("updateSettings", 0, settings_obj))
 		
 	async def updateProfileAttribute(self, attribute: ProfileAttribute, value: str) -> bool:
 		"""
@@ -146,7 +156,7 @@ class Talk(object):
 			bool == false, because this will returning NoneType as False
 		"""
 		
-		return bool(await self.auth.call("updateProfileAttribute", 0, attribute, value))
+		return bool(await self.call("updateProfileAttribute", 0, attribute, value))
 		
 	async def updateContactSetting(self, mid: str, attribute: int, value: str):
 		"""
@@ -164,7 +174,7 @@ class Talk(object):
 		Return:
 			bool == false, because this will returning NoneType as False
 		"""
-		return bool(await self.auth.call("updateContactSetting", 0, mid, attribute, value))
+		return bool(await self.call("updateContactSetting", 0, mid, attribute, value))
 	
 	async def disableNotifContact(self, mid, str):
 		"""
@@ -265,9 +275,9 @@ class Talk(object):
 		"""
 		mids = mids if isinstance(mids, (list, tuple)) else [mids]
 		if len(mids) <= 1:
-			return await self.auth.call("getContact", mids[0])
+			return await self.call("getContact", mids[0])
 		else:
-			return await self.auth.call("getContacts", mids)
+			return await self.call("getContacts", mids)
 	
 	async def blockContact(self, mids: Union[str, list, tuple]) -> bool:
 		"""
@@ -281,10 +291,10 @@ class Talk(object):
 			bool == false, because this will returning NoneType as False
 		"""
 		if isinstance(mids, str):
-			return bool(await self.auth.call("blockContact", 0, mids))
+			return bool(await self.call("blockContact", 0, mids))
 		elif isinstance(mids, (list, tuple)):
 			for mid in mids:
-				bool(await self.auth.call("blockContact", 0, mid))
+				bool(await self.call("blockContact", 0, mid))
 	
 	async def unblockContact(self, mids: Union[str, list, tuple]) -> bool:
 		"""
@@ -298,10 +308,10 @@ class Talk(object):
 			bool == false, because this will returning NoneType as False
 		"""
 		if isinstance(mids, str):	
-			return bool(await self.auth.call("unblockContact",0, mids, ""))
+			return bool(await self.call("unblockContact",0, mids, ""))
 		elif isinstance(mids, (list, tuple)):
 				for mid in mids:
-					bool(await self.auth.call("unblockContact",0, mid, ""))
+					bool(await self.call("unblockContact",0, mid, ""))
 	
 	async def findAndAddContactsByMid(self, mids: str) -> bool:
 		"""
@@ -313,7 +323,7 @@ class Talk(object):
            Return:
            	bool == false, because this will returning NoneType as False
 		"""
-		return bool(await self.auth.call("findAndAddContactsByMid", 0, mids, 0, ""))
+		return bool(await self.call("findAndAddContactsByMid", 0, mids, 0, ""))
 	
 	async def findAndAddContactsByUserid(self, user_id: str) -> bool:
 		"""
@@ -325,7 +335,7 @@ class Talk(object):
            Return:
            	bool == false, because this will returning NoneType as False
 		"""
-		return bool(await self.auth.call("findAndAddContactsByUserid", 0, user_id))
+		return bool(await self.call("findAndAddContactsByUserid", 0, user_id))
 		
 	async def findContactByUserid(self, user_id: str) -> Contact:
 		"""
@@ -337,7 +347,7 @@ class Talk(object):
            Return:
            	<class 'AsyncLine.lib.Gen.ttypes.Contact'>
 		"""
-		return await self.auth.call("findContactByUserid", user_id)
+		return await self.call("findContactByUserid", user_id)
 		
 				
 	async def findContactByTicket(self, ticket: str) -> Contact:
@@ -350,7 +360,7 @@ class Talk(object):
            Return:
            	<class 'AsyncLine.lib.Gen.ttypes.Contact'>
 		"""
-		return await self.auth.call("findContactByUserTicket", ticket)
+		return await self.call("findContactByUserTicket", ticket)
 	
 	async def getAllContactIds(self) -> list:
 		"""
@@ -359,7 +369,7 @@ class Talk(object):
            Return:
            	<class 'list'>
 		"""
-		return await self.auth.call("getAllContactIds")
+		return await self.call("getAllContactIds")
 	
 	async def getBlockedContactIds(self) -> list:
 		"""
@@ -368,7 +378,7 @@ class Talk(object):
            Return:
            	<class 'list'>
 		"""
-		return await self.auth.call("getBlockedContactIds")
+		return await self.call("getBlockedContactIds")
 	
 	async def getFavoriteMids(self) -> list:
 		"""
@@ -377,7 +387,7 @@ class Talk(object):
            Return:
            	<class 'list'>
 		"""
-		return await self.auth.call("getFavoriteMids")
+		return await self.call("getFavoriteMids")
 		
 	async def getHiddenContactMids(self) -> list:
 		"""
@@ -386,7 +396,7 @@ class Talk(object):
            Return:
            	<class 'list'>
 		"""
-		return await self.auth.call("getHiddenContactMids")
+		return await self.call("getHiddenContactMids")
 	
 	async def createGroup(self, name: str, mid_users: list) -> bool:
 		"""
@@ -399,65 +409,65 @@ class Talk(object):
 		Return:
 			bool == False, because this will returning NoneType as False
 		"""
-		return bool(await self.auth.call("createGroup", 0, name, mid_users))
+		return bool(await self.call("createGroup", 0, name, mid_users))
 		
-	async def getGroups(self, group_ids: Union[str, list]) -> Union[list, Group]:
+	async def getGroups(self, chat_ids: Union[str, list]) -> Union[list, Group]:
 		"""
 		Use this method to get Informations about group
 		
 		Args:
-			group_ids: string or multiple group_ids of list
+			chat_ids: string or multiple chat_ids of list
 							for getting more than once
 		
 		Return:
-			<class 'AsyncLine.lib.Gen.ttypes.Group'> if group_ids only one
+			<class 'AsyncLine.lib.Gen.ttypes.Group'> if chat_ids only one
 			if list returned <class 'list'>
 		"""
-		ids = group_ids if isinstance(group_ids, list) else [group_ids]
+		ids = chat_ids if isinstance(chat_ids, list) else [chat_ids]
 		if len(ids) <= 1:
-			return await self.auth.call("getGroup", ids[0])
+			return await self.call("getGroup", ids[0])
 		else:
-			return await self.auth.call("getGroups", ids)
+			return await self.call("getGroups", ids)
 			
-	async def getGroupWithoutMembers(self, group_id: str) -> Group:
+	async def getGroupWithoutMembers(self, chat_id: str) -> Group:
 		"""
 		Use this method to get Informations about group exclude Contact classes
 		
 		Args:
-			group_id: string of group_id
+			chat_id: string of chat_id
 			
 		Return:
 			<class 'AsyncLine.lib.Gen.ttypes.Group'>
 		"""
-		return await self.auth.call("getGroupWithoutMembers", group_id)
+		return await self.call("getGroupWithoutMembers", chat_id)
 		
-	async def getGroupsV2(self, group_id: Union[list, str]) -> Group:
+	async def getGroupsV2(self, chat_id: Union[list, str]) -> Group:
 		"""
 		Use this method to get Custom Informations about group
 		include Mid of list members and Mid of list pending members
 		more than fasted than getGroups and getCompactGroup
 		
 		Args:
-			group_id: string of group_id
+			chat_id: string of chat_id
 			
 		Return:
 			<class 'AsyncLine.lib.Gen.ttypes.Group'>
 			or <class 'list'>
 		"""
-		return await self.auth.call("getGroupsV2", group_id)
+		return await self.call("getGroupsV2", chat_id)
 		
-	async def getCompactGroup(self, group_id: str) -> Group:
+	async def getCompactGroup(self, chat_id: str) -> Group:
 		"""
 		Use this method to get Compact Informations about group
 		exclude some data and fasted than getGroups
 		
 		Args:
-			group_id: string of group id
+			chat_id: string of group id
 			
 		Return:
 			<class 'AsyncLine.lib.Gen.ttypes.Group'>
 		"""
-		return await self.auth.call("getCompactGroup", group_id)
+		return await self.call("getCompactGroup", chat_id)
 	
 	async def getGroupIdsInvited(self) -> list:
 		"""
@@ -466,7 +476,7 @@ class Talk(object):
 		Return:
 			<class 'list'>
 		"""
-		return await self.auth.call("getGroupIdsInvited")
+		return await self.call("getGroupIdsInvited")
 	
 	async def getGroupIdsJoined(self) -> list:
 		"""
@@ -475,31 +485,31 @@ class Talk(object):
 		Return:
 			<class 'list'>
 		"""
-		return await self.auth.call("getGroupIdsJoined")
+		return await self.call("getGroupIdsJoined")
 	
-	async def acceptGroupInvitation(self, group_id: str, ticket: str = None) -> bool:
+	async def acceptGroupInvitation(self, chat_id: str, ticket: str = None) -> bool:
 		"""
-		Use this method to join into specifiec group_id, or using ticket id if not None
+		Use this method to join into specifiec chat_id, or using ticket id if not None
 		
 		Args:
-			group_id: string of group_id
+			chat_id: string of chat_id
 			ticket: string of ticket from group
 		
 		Return:
 			bool == False, because this will returning NoneType as False
 		"""
 		if ticket is not None:
-			return bool(await self.auth.call("acceptGroupInvitationByTicket", 0, group_id, ticket))
+			return bool(await self.call("acceptGroupInvitationByTicket", 0, chat_id, ticket))
 		else:
-			return bool(await self.auth.call("acceptGroupInvitation", 0, group_id))
+			return bool(await self.call("acceptGroupInvitation", 0, chat_id))
 		
 
-	async def cancelGroupInvitation(self, group_id: str, mid_users: Union[str, list]) -> bool:
+	async def cancelGroupInvitation(self, chat_id: str, mid_users: Union[str, list]) -> bool:
 		"""
 		Use this method to cancel invitation user from group
 		
 		Args:
-			group_id: string of id from group id
+			chat_id: string of id from group id
 			mid_users: string or multiple list of string from mid_users
 							to cancel more than once
 							
@@ -509,16 +519,16 @@ class Talk(object):
 		mid_users = mid_users if isinstance(mid_users, list) else [mid_users]
 		if len(mid_users) >= 1:
 			for mid in mid_users:
-				bool(await self.auth.call("cancelGroupInvitation", 0, group_id, [mid]))
+				bool(await self.call("cancelGroupInvitation", 0, chat_id, [mid]))
 		else:
-			return bool(await self.auth.call("cancelGroupInvitation", 0, group_id, mid_users))
+			return bool(await self.call("cancelGroupInvitation", 0, chat_id, mid_users))
 			
-	async def inviteIntoGroup(self, group_id: str, mid_users: list) -> bool:
+	async def inviteIntoGroup(self, chat_id: str, mid_users: list) -> bool:
 		"""
 		Use this method to invite some or many user into group
 		
 		Args:
-			group_id: string of id from group id
+			chat_id: string of id from group id
 			mid_users: string or multiple list of string from mid_users
 							to invite more than once
 							
@@ -526,14 +536,14 @@ class Talk(object):
 			bool == False, because this will returning NoneType as False
 		"""
 		mids = mid_users if isinstance(mid_users, list) else [mid_users]
-		return bool(await self.auth.call("inviteIntoGroup", 0, group_id, mids))
+		return bool(await self.call("inviteIntoGroup", 0, chat_id, mids))
 	
-	async def kickoutFromGroup(self, group_id: str, mid_users: Union[str, list]) -> bool:
+	async def kickoutFromGroup(self, chat_id: str, mid_users: Union[str, list]) -> bool:
 		"""
 		Use this method to kick some or many user from group
 		
 		Args:
-			group_id: string of id from group id
+			chat_id: string of id from group id
 			mid_users: string or multiple list of string from mid_users
 							to kick more than once
 							
@@ -543,49 +553,49 @@ class Talk(object):
 		mids = mid_users if isinstance(mid_users, list) else [mid_users]
 		if len(mids) > 1:
 			for mid in mids:
-				bool(await self.auth.call("kickoutFromGroup", 0, group_id, [mid]))
+				bool(await self.call("kickoutFromGroup", 0, chat_id, [mid]))
 		else:
-			return bool(await self.auth.call("kickoutFromGroup", 0, group_id, mids))
+			return bool(await self.call("kickoutFromGroup", 0, chat_id, mids))
 			
-	async def leaveGroup(self, group_id: str) -> bool:
+	async def leaveGroup(self, chat_id: str) -> bool:
 		"""
 		Use this method to leave from group
 		
 		Args:
-			group_id: string of id from group id
+			chat_id: string of id from group id
 			
 		Return:
 			bool == False, because this will returning NoneType as False
 		"""
-		return bool(await self.auth.call("leaveGroup", 0, group_id))
+		return bool(await self.call("leaveGroup", 0, chat_id))
 	
-	async def rejectGroupInvitation(self, group_id: str) -> None:
+	async def rejectGroupInvitation(self, chat_id: str) -> None:
 		"""
 		Use this method to reject group you have invited
 		
 		Args:
-			group_id: string of id from group id, see self.getGroupIdsInvited
+			chat_id: string of id from group id, see self.getGroupIdsInvited
 			
 		Return:
 			bool == False, because this will returning NoneType as False
 		"""
-		return bool(await self.auth.call("rejectGroupInvitation", 0, group_id))
+		return bool(await self.call("rejectGroupInvitation", 0, chat_id))
 	
-	async def updateGroupPreferenceAttribute(self, group_id:str, attribute: dict) -> bool:
+	async def updateGroupPreferenceAttribute(self, chat_id:str, attribute: dict) -> bool:
 		"""
 		Use this method to update yoir Preference attribute of group
 		
 		Args:
-			group_id: string of id from group id
+			chat_id: string of id from group id
 			attribute: dict of attribute from {<class 'AsyncLine.lib.Gen.ttypes.GroupPreferenceAttribute'>, string}
 							INVITATION_TICKET = 1
 							FAVORITE_TIMESTAMP = 2
 							
-							e.g: cl.updateGroupPreferenceAttribute(group_id, {1: "True"})
+							e.g: cl.updateGroupPreferenceAttribute(chat_id, {1: "True"})
 		Return:
 			bool == False, because this will returning NoneType as False
 		"""
-		return bool(await self.auth.call("updateGroupPreferenceAttribute", 0, group_id, attribute))
+		return bool(await self.call("updateGroupPreferenceAttribute", 0, chat_id, attribute))
 		
 	async def updateGroup(self, obj: Union[Group]) -> bool:
 		"""
@@ -595,16 +605,16 @@ class Talk(object):
 			obj: object from Group classes <class 'AsyncLine.lib.Gen.ttypes.Group'>
 			
 			e.g:
-				group = client.getGroup(group_id)
+				group = cl.getGroup(chat_id)
 				group.preventedJoinByTicket = False
-				client.updateGroup(group)
+				cl.updateGroup(group)
 				
 				this will disable Joining by ticket group
 				
 		Return:
 			bool == False, because this will returning NoneType as False
 		"""
-		return bool(await self.auth.call("updateGroup", 0, obj))
+		return bool(await self.call("updateGroup", 0, obj))
 	
 	async def getRoom(self, room_id: str) -> Room:
 		"""
@@ -616,7 +626,7 @@ class Talk(object):
 		Return:
 			<class 'AsyncLine.lib.Gen.ttypes.Room'>
 		"""
-		return await self.auth.call("getRoom", room_id)
+		return await self.call("getRoom", room_id)
 		
 	async def getCompactRoom(self, room_id: str) -> Room:
 		"""
@@ -629,7 +639,7 @@ class Talk(object):
 		Return:
 			<class 'AsyncLine.lib.Gen.ttypes.Room'>
 		"""
-		return await self.auth.call("getCompactRoom", room_id)
+		return await self.call("getCompactRoom", room_id)
 	
 	async def inviteIntoRoom(self,room_id:str, mid_users: Union[str, list]) -> bool:
 		"""
@@ -644,7 +654,7 @@ class Talk(object):
 			bool == False, because this will returning NoneType as False
 		"""
 		mids = mid_users if isinstance(mid_users, list) else [mid_users]
-		return await self.auth.call("inviteIntoRoom", 0, room_id, mids)
+		return await self.call("inviteIntoRoom", 0, room_id, mids)
 		
 	async def leaveRoom(self, room_id: str) -> bool:
 		"""
@@ -656,10 +666,10 @@ class Talk(object):
 		Return:
 			bool == False, because this will returning NoneType as False
 		"""
-		return await self.auth.call("leaveRoom", 0, room_id)
+		return await self.call("leaveRoom", 0, room_id)
 	
 	async def sendMention(self,
-								group_id: str,
+								chat_id: str,
 								mids: list = [],
 								separator: str = "\n",
 								first_text: str = None,
@@ -670,7 +680,7 @@ class Talk(object):
 		Use this method to Send Mention to all or some user.
 		
 		Args:
-			group_id: string from group_id or room_id
+			chat_id: string from chat_id or room_id
 			mids: string of list from user mids at group
 			separator: (string | None, optional) of separator to separate each line of mention
 			first_text: (string | None, optional) of texts that will be on top mentioning
@@ -711,56 +721,52 @@ class Talk(object):
 			if text:
 				if text.endswith("\n"):
 					text = text[:-1]
-				await self.sendMessage(group_id, text, {'MENTION': json.dumps({'MENTIONEES': mentionees})}, 0)
+				await self.sendMessage(chat_id, text, {'MENTION': json.dumps({'MENTIONEES': mentionees})}, 0)
 			text = ""
+	
 	async def sendLocation(self,
-						group_id: str,
+						chat_id: str,
 						address: str,
 						latitude: float,
 						longitude: float,
-						phone: Union[str, int] = None,
-						contentMetadata: Union[dict] = None,
-						contentType: int = 0
+						phone: str = None,
+						title: str = None
 					) -> Union[str, Message]:
 		"""
 		Use this method to sending a Location
 		
 		Args:
-		 group_id: string of mid from group id
-		 address: string of your address location
-		 latitude: float of your address latitude
-		 longitude: float of your address longitude
-		 phone: string or integer of your number
-		 contentMetadata: dict of contectMetadata for sending
-		 contentType: int of contentType see <class 'AsyncLine.lib.Gen.ttypes.ContentType'>
-		"""
-		location = Location(address=address,
-													phone=phone,
-													latitude=latitude,
-													longitude=longitude,
-													title='Location'
-												)
-											
-		msg = Message(to=group_id,
-										text = 'Location by AsyncLine',
-										contentType =  contentType,
-										contentMetadata = {'LINE_RECV':'1'}
-										if contentMetadata is None \
-										else contentMetadata,
-										location = location
-								)
-		return await self.auth.call("sendMessage", 0, msg)
+			chat_id: string of mid from group id
+		 	address: string of your address location
+		 	latitude: float of your address latitude
+		 	longitude: float of your address longitude
+		 	phone: string of your number phone (optional)
+		 	title: string that will be show on Location content
+		 	
+		 Return:
+		 	<clas 'Message'>
+		 """
+		location = Location(
+							title="Location" if not title else title,
+							address=address,
+							phone=phone,
+							latitude=latitude,
+							longitude=longitude,
+						)
+		return await self.sendMessage(chat_id, text="", location=location)
+	
 	async def sendMessage(self,
-						group_id: str,
+						chat_id: str,
 						text: str,
-						contentMetadata: Union[dict] = None,
-						contentType: int = 0
+						contentMetadata: dict = None,
+						contentType: int = 0,
+						*args, **kwrgs
 					) -> Union[str, Message]:
 		"""
 		Use this method to sending Message containt any types
 		
 		Args:
-			group_id: string of mid from group id
+			chat_id: string of mid from group id
 			text: string of some text
 			contentMetadata: dict of contentMetadata for sending
 			contentType: int of contentType see <class 'AsyncLine.lib.Gen.ttypes.ContentType'>
@@ -768,47 +774,75 @@ class Talk(object):
 		Return:
 			<class 'AsyncLine.lib.Gen.ttypes.Message'>
 		"""	
-		msg = Message(to=group_id,
+		msg = Message(to=chat_id,
 							text = text,
 							contentType =  contentType,
 							contentMetadata = {'LINE_RECV':'1'} 
 							if contentMetadata is None \
-							else contentMetadata
+							else contentMetadata,
+							*args, **kwrgs
 						)
-		return await self.auth.call("sendMessage", 0, msg)
-
+		
+		return await self.call("sendMessage", 0, msg)
+		
 	async def sendReply(self,
 						relatedMessage_id: str,
-						group_id: str,
+						chat_id: str,
 						text: str,
-						contentMetadata: Union[dict] = None,
+						contentMetadata: dict = None,
 						contentType: int = 0
 					) -> Union[str, Message]:
 		"""
 		Use this method to sending Reply Message containt any types
 		
 		Args:
-			relatedMessage_id: string of your message id
-			group_id: string of mid from group id
-			text: string of some text
-			contentMetadata: dict of contentMetadata for sending
-			contentType: int of contentType see <class 'AsyncLine.lib.Gen.ttypes.ContentType'>
-		
+			relatedMessage_id: string of Message.id from user or self
+			chat_id: string of mid from group id
+			text: string of some text that will be sending
+			contentType: (int, optional) pass ContentType for sending 0 that meant type text
+			contentMetadata: (dict, optional) pass a dict data for metadata on message
 		Return:
 			<class 'AsyncLine.lib.Gen.ttypes.Message'>
 		"""	
-		msg = Message(to=group_id,
-							text = text,
-							relatedMessageServiceCode = 1,
-							messageRelationType = 3,
-							relatedMessageId = relatedMessage_id,
-							contentType =  contentType,
-							contentMetadata = {'LINE_RECV':'1'} 
-							if contentMetadata is None \
-							else contentMetadata
-						)
-		return await self.auth.call("sendMessage", 0, msg)
-
+		return await self.sendMessage(chat_id,
+											text,
+											contentType = contentType,
+											contentMetadata = contentMetadata,
+											relatedMessageServiceCode=1,
+											messageRelationType = 3,
+											relatedMessageId = relatedMessage_id
+										)
+		
+	async def sendMusicMessage(self,
+									chat_id: str,
+									title: str = "Music Messaging",
+									sub_text: str = "Music Message",
+									url: str = None,
+									preview_url: str = None,
+								) -> Message:
+		m = self.auth.profile.mid
+		url = url if url else "line.me/ti/p/~{}".format((await self.generateUserTicket(-1)).id)
+		preview_url = preview_url if preview_url else 'https://obs.line-apps.com/os/p/{}'.format(m)
+		meta = {
+			'text': title,
+			'subText': sub_text,
+			'a-installUrl': url,
+			'i-installUrl': url,
+			'a-linkUri': url,
+			'i-linkUri': url,
+			'linkUri': url,
+			'previewUrl': preview_url,
+			'type': 'mt',
+			'a-packageName': 'com.spotify.music',
+			'countryCode': 'JP',
+			'id': 'mt000000000a6b79f9'
+		}
+		return await self.sendMessage(chat_id, None, contentType=19, contentMetadata=meta)
+	
+	async def sendContact(self, chat_id: str, mid: str) -> Message:
+		meta = {'mid': mid}
+		return await self.sendMessage(chat_id, None, contentType=13, contentMetadata=meta)
+	
 	async def unsendMessage(self, message_id: str) -> bool:
 		"""
 		Use this method to unsend Message containt any types
@@ -820,8 +854,8 @@ class Talk(object):
 			bool == False, because this will returning NoneType as False
 		"""
 		self._unsendMessageReq += 1
-		return bool(await self.auth.call("unsendMessage", self._unsendMessageReq, message_id))
-		
+		return bool(await self.call("unsendMessage", self._unsendMessageReq, message_id))
+	
 	async def getMidWithTag(self, message: Message) -> list:
 		"""
 		Use this method to get mid of user using Mention
@@ -832,7 +866,7 @@ class Talk(object):
 			e.g
 			async def _(op):
 				message = op.message
-				await client.getMidWithTag(message)
+				await cl.getMidWithTag(message)
 				
 		Return:
 			<class 'list'> of mid user
@@ -847,7 +881,7 @@ class Talk(object):
 				for mid in key["MENTIONEES"]:
 					mm.append(mid["M"])
 				return mm
-	
+				
 	async def sendAudio(self,
 								to: str,
 								path: str = None,
@@ -869,10 +903,10 @@ class Talk(object):
 		if path is not None and url is not None:
 			raise Exception("if args url is given, it cannot use the path")
 		if path is None and url is not None:
-			path = await self.client.download_fileUrl(url)
+			path = await self.cl.download_fileUrl(url)
 			
 		objectId = (await self.sendMessage(to, text=None, contentType = 3)).id
-		return self.client.uploadObjTalk(path=path, types='audio', remove_path=remove_path, objId=objectId)
+		return self.cl.uploadObjTalk(path=path, types='audio', remove_path=remove_path, objId=objectId)
 		
 	async def sendImage(self,
 								to: str,
@@ -895,10 +929,10 @@ class Talk(object):
 		if path is not None and url is not None:
 			raise Exception("if args url is given, it cannot use the path")
 		if url is not None and path is None:
-			path = await self.client.download_fileUrl(url)
+			path = await self.cl.download_fileUrl(url)
 				
 		objectId = (await self.sendMessage(to, text=None, contentType=1)).id
-		return await self.client.uploadObjTalk(path=path, types='image', remove_path=remove_path, objId=objectId)
+		return await self.cl.uploadObjTalk(path=path, types='image', remove_path=remove_path, objId=objectId)
 	
 	async def sendVideo(self,
 								to: str,
@@ -921,10 +955,10 @@ class Talk(object):
 		if path is not None and url is not None:
 			raise Exception("if args url is given, it cannot use the path")
 		if url is not None and path is None:
-			path = await self.client.download_fileUrl(url)
+			path = await self.cl.download_fileUrl(url)
 			
 		objectId = (await self.sendMessage(to, text=None, contentMetadata={'VIDLEN': '60000','DURATION': '60000'}, contentType = 2)).id
-		return await self.client.uploadObjTalk(path=path, types='video', remove_path=remove_path, objId=objectId)
+		return await self.cl.uploadObjTalk(path=path, types='video', remove_path=remove_path, objId=objectId)
 	
 	async def sendGif(self,
 								to: str,
@@ -947,9 +981,9 @@ class Talk(object):
 		if path is not None and url is not None:
 			raise Exception("if args url is given, it cannot use the path")
 		if url is not None and path is None:
-			path = await self.client.download_fileUrl(url)
+			path = await self.cl.download_fileUrl(url)
 			
-		return await self.client.uploadObjTalk(to=to, path=path, types='gif', remove_path=remove_path)
+		return await self.cl.uploadObjTalk(to=to, path=path, types='gif', remove_path=remove_path)
 	
 	async def sendFile(self, to: str, path: str = None, file_name: str = None):
 		"""
@@ -968,10 +1002,10 @@ class Talk(object):
 		if file_name is None:
 			file_name = fp.name
 		objectId = (await self.sendMessage(to, text=None, contentMetadata={'FILE_NAME': str(file_name),'FILE_SIZE': str(len(fp.read()))}, contentType = 14)).id
-		return await self.client.uploadObjTalk(path=path, types='file', remove_path=remove_path, objId=objectId)
+		return await self.cl.uploadObjTalk(path=path, types='file', remove_path=remove_path, objId=objectId)
 		
 	async def fetchOps(self, localRev, count=10):
-		return await self.client.call('fetchOps', localRev, count, 0, 0)
-		
+		return await self.cl.call('fetchOps', localRev, count, 0, 0)
+	
 	async def fetchOperations(self, localRev, count=10):
-		return await self.client.call('fetchOperations', localRev, count)
+		return await self.cl.call('fetchOperations', localRev, count)

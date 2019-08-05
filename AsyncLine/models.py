@@ -12,7 +12,7 @@ class SyncAsync(object):
 class ApplicationHeader(object):
 	MAP = {
 		'ios': {
-			'UA': "Line/8.2.4 iPad4,1 10.0.2", # "Line/7.14.0"
+			'UA': "Line/8.2.0 iPad4,1 10.0.2", # "Line/7.14.0"
 			'LA': "IOSIPAD\t8.9.0\tiPhone_OS\t11.3",
 		},
 		'ios2': {

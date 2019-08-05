@@ -11,9 +11,7 @@ from thrift.transport.TTransport import TTransportException
 class Poll(Connection):
 	def __init__(self, client_name):
 		super().__init__(config.POLLING_PATH)
-
 		self.transport.setTimeout(-1)
-
 		self.LA, self.UA = models.ApplicationHeader(client_name).get()
 		self.updateHeaders({
 			'user-agent': self.UA,
@@ -21,8 +19,6 @@ class Poll(Connection):
 		})
 		self.revision = 0
 		self.op_handler = {}
-		self._threaded = True
-		
 		if client_name in ['android', 'android2']:
 			self.fetch = self.fetchOps
 		else:

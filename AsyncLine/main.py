@@ -4,7 +4,10 @@ from .auth import Auth
 from .poll import Poll
 from .channel import Channel
 from .talk import Talk
+from .call import Call
+from .liff import Liff
 from . import config
+from . import log
 from .lib.Gen.ttypes import *
 from random import randint
 import urllib
@@ -16,6 +19,7 @@ import time
 import json
 import tempfile
 
+logs = log.LOGGER
 
 def callback(*args, **kws):
 	print(*args, **kws)
@@ -28,21 +32,24 @@ class LineNext(object):
 		self.auth.remote(self.talk.afterLogin)
 		self.ch = Channel(self.auth)
 		self.auth.remote(self.ch.afterLogin)
+		self.call = Call(self.auth)
+		self.auth.remote(self.call.afterLogin)
 		self.poll = Poll(client_name)
 		self.auth.remote(self.poll.afterLogin)
+		self.liff = Liff(self.auth)
+		self.auth.remote(self.liff.afterLogin)
 		self._session = requests.Session()
 	
 	def __validate(self, name):
 		f = SyncAsync(self.auth.createLoginSession(name)).run()
 		if not f:
 			return
-		else:
-			self.headers = {
-					"User-Agent": self.auth.UA,
-					"X-Line-Application": self.auth.LA,
-					"X-Line-Access":self.auth.authToken.strip(),
-					"x-lal":"in_ID"
-				}
+		self.headers = {
+				"User-Agent": self.auth.UA,
+				"X-Line-Application": self.auth.LA,
+				"X-Line-Access":self.auth.authToken.strip(),
+				"x-lal":"in_ID"
+			}
 		
 	def afterLogin(self, *args, **kws):
 		for k,v in kws.items():
@@ -100,9 +107,9 @@ class LineNext(object):
 			if return_as == "bool":
 				return True
 			else:
-				raise TypeError("args=(return_as), must be <bin or path or bool>, got {}".format(return_as))
+				logs.warning("args=(return_as), must be <bin or path or bool>, got {}".format(return_as))
 		else:
-			raise Exception("Download url failed with code {}".format(r.status_code))
+			logs.error("Download url failed with code {}".format(r.status_code))
 	
 	def genOBSParams(self, newList, returnAs='json'):
 		oldList = {'name': self.generate_tempFile('file'),'ver': '1.0'}
@@ -128,8 +135,7 @@ class LineNext(object):
 										remove_path = True):
 		assert return_as in ["path", "bool"], "value of return_as incorrect got %s" % return_as
 		if not path:
-			path = self.generate_tempFile()
-		
+			path = self.generate_tempFile()	
 		params = {"oid": message_id}
 		uri = config.OBS_URL + '/talk/m/download.nhn?' + urllib.parse.urlencode(params)
 		r = await self.get_content(uri)
@@ -142,7 +148,7 @@ class LineNext(object):
 			elif return_as == "bool":
 				return True
 		else:
-			raise Exception("Download message content failed returning code %s" % r.status_code)
+			logs.error("Download message content failed returning code %s" % r.status_code)
 		if remove_path:
 			self.delete_file(path)
 			
@@ -180,7 +186,7 @@ class LineNext(object):
 		if r.ok:
 			return True
 		else:
-			raise Exception("Upload content %s failed returning code %s" % (types, r.status_code))
+			logs.error("Upload content %s failed returning code %s" % (types, r.status_code))
 		if remove_path:
 			self.delete_file(path)
 	
@@ -213,7 +219,7 @@ class LineNext(object):
 		if r.ok:
 			return True
 		else:
-			raise Exception("Update group picture failed returning code %s" % r.status_code)
+			logs.error("Update group picture failed returning code %s" % r.status_code)
 		if remove_path:
 			self.delete_file(path)
 	
@@ -251,6 +257,6 @@ class LineNext(object):
 		if r.ok:
 			return True
 		else:
-			raise Exception("Update profile picture failed returning code %s" % r.status_code)
+			logs.error("Update profile picture failed returning code %s" % r.status_code)
 		if remove_path:
 			self.delete_file(path)

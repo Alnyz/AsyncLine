@@ -24,6 +24,7 @@ class HttpClient(FHttpTransport):
 			'accept': 'application/x-thrift',
 			'user-agent': 'Python Frugal Thrift',
 		}
+		self._opened = False
 		
 	def setTimeout(self, timeout):
 		self._timeout = timeout

@@ -32,7 +32,7 @@
   </a>
   .
   <a href="https://github.com/dyseo/AsyncLine">
-    <img src="https://img.shields.io/badge/Version-1.5.7-red" alt="Version">
+    <img src="https://img.shields.io/badge/Version-1.5.8-red" alt="Version">
   <a/>
 </h3>
   

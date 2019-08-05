@@ -14,14 +14,9 @@ install_requires = [
 	'asyncio-nats-client'
 ]
 
-#packages = [
-	#'AsyncLine',
-	#'AsyncLine.lib',
-#]
-
 setup(
 	name='AsyncLine',
-	version='1.5.7',
+	version='1.5.8',
 	long_description=long_description,
 	long_description_content_type="text/markdown",
 	description='LINE Unofficial Python Library with Asyncio support and C++ Binding',

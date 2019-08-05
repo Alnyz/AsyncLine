@@ -8,9 +8,12 @@ import rsa
 import requests
 from . import config
 from . import models
+from . import log
 from .models import SyncAsync
 from .connections import Connection
 from .lib.Gen.ttypes import *
+
+logs = log.LOGGER
 
 class Auth(Connection):
 	def __init__(self, client_name):
@@ -19,7 +22,8 @@ class Auth(Connection):
 		self.updateHeaders({
 			'User-Agent': self.UA,
 			'X-Line-Application': self.LA,
-			'X-Line-Carrier': config.CARRIER
+			'X-Line-Carrier': config.CARRIER,
+			"x-lal":"in_ID"
 		})
 		self.afterLoginRemote = []
 
@@ -58,45 +62,6 @@ class Auth(Connection):
 		crypto  = self.__rsa_crypt(message, RSA).hex()
 		return crypto
 
-	def requestEmailConfirmation(self, email, password, ignoreDuplication=False, useEmailOnly=False):
-		raise NotImplementedError("for some reasons we removed it.")
-		
-	def resendEmailConfirmation(self, verifier):
-		raise NotImplementedError("for some reasons we removed it.")
-		
-	def confirmEmail(self, verifier, pincode):
-		raise NotImplementedError("for some reasons we removed it.")
-		
-	def deviceInfo(self, appType=32):
-		raise NotImplementedError("for some reasons we removed it.")
-		
-	def startVerification(self, phoneNumber, region, seed='', appType=32):
-		raise NotImplementedError("for some reasons we removed it.")
-		
-	def changeVerificationMethod(self, sessionId, method):
-		raise NotImplementedError("for some reasons we removed it.")
-		
-	def verifyPhoneNumber(self, sessionId, pincode, seed=''):
-		raise NotImplementedError("for some reasons we removed it.")
-		
-	def registerWithPhoneNumber(self, tuple_verifyPhoneNumber):
-		raise NotImplementedError("for some reasons we removed it.")
-		
-	def registerWithFacebook(self, FBToken, seed='', appType=32, country="JP"):
-		raise NotImplementedError("for some reasons we removed it.")
-		
-	def generateAccessToken(self, authKey, currentMillis=None):
-		raise NotImplementedError("for some reasons we removed it.")
-		
-	def createAccountMigrationPincodeSession(self):
-		raise NotImplementedError("for some reasons we removed it.")
-		
-	def findSnsIdUserStatus(self, snsIdType, snsAccessToken, udidHash, migrationPincodeSessionId, oldUdidHash):
-		raise NotImplementedError("for some reasons we removed it.")
-		
-	def registerWithSnsId(self, snsIdType, snsAccessToken, region, udidHash, deviceInfo, mid, migrationPincodeSessionId):
-		raise NotImplementedError("for some reasons we removed it.")
-
 	def waitForPhoneConfirm(self, verifier):
 		r = requests.get(config.BASE_URL + config.WAIT_FOR_MOBILE_PATH, headers={
 			'X-Line-Access': verifier
@@ -105,32 +70,40 @@ class Auth(Connection):
 	
 	async def createLoginSession(self, name):
 		path = name + ".session"
-		choses = ["qr", "email"]
+		choses = ["qr", "email", "token"]
 		if not os.path.exists(path):
-			print("Cannot find last session, trying to create")
+			logs.warning("Cannot find last session, trying to create")
 			await asyncio.sleep(1)
-			c = input("Choose what you want to login (qr or email): ")
+			c = input("Choose what you want to login (qr | email | token): ")
 			while True:
 				if c not in choses:
-					print("Wrong input %s please input qr or email" % c)
+					logs.warning("Wrong input %s please input qr or email" % c)
 					return False
 					break
+				elif c == "token":
+					token = input("Input your token: ")
+					await self.loginWithAuthToken(token.strip(), path)
 				elif c == "qr":
 					await self.loginWithQrcode(path)
 				elif c == "email":
 					mail = input("Input your email: ")
 					password = input("Input your password: ")
+					with open(path, "a") as fp:
+						fp.write("cert\n{}\n{}".format(mail, password))
 					await self.loginWithCredential(mail=mail, password=password, path=path)
-				print("Loggin succes with %s" % c)
+				logs.info("Login succes with %s" % c)
 				break
 		else:
-			print("Skipping loggin session, found last session trying login..")
+			logs.info("Skip create session, found last session and trying to login")
 			with open(path, "r") as fp:
 				auth = fp.read()
 				if "auth" in auth:
 					token = auth.split(">")[1]
 					await self.loginWithAuthToken(authToken=token)
-					print("Loggin session succes as %s " % name)
+				if "cert" in auth:
+					y = auth.split("\n")
+					await self.loginWithCredential(mail=y[1], password=y[2], cert=y[3])
+				logs.info("Login success as %s (%s)" % (self.profile.displayName, name))
 			return True
 				
 	async def loginWithQrcode(self, path=None, callback=lambda x: print(x)):
@@ -181,7 +154,7 @@ class Auth(Connection):
 			cert,
 			None,
 			crypt.encode() if type(crypt) == str else crypt, #none, #crypt
-			2
+			0
 		)
 		result = await self.call('loginZ', rq)
 		self.url(config.MAIN_PATH)
@@ -199,33 +172,31 @@ class Auth(Connection):
 				2
 			)
 			self.url(config.AUTH_PATH)
-			result = await self.call('loginZ', rq) 
+			result = await self.call('loginZ', rq)
 			self.updateHeaders({
 				'x-line-access': result.authToken,
 			})
 			self.authToken = result.authToken
 			self.cert = result.certificate
 			if path is not None:
-				with open(path, "w") as fp:
-					text = "auth > {}".format(result.authToken)
+				with open(path, "a") as fp:
+					text = "\n{}".format(self.cert)
 					fp.write(text)
 			self.url(config.MAIN_PATH)
 		elif result.type == 1:
 			self.authToken = result.authToken
 			self.cert = result.certificate
-			if path is not None:
-				with open(path, "w") as fp:
-					text = "auth > {}".format(result.authToken)
-					fp.write(text)
 			self.updateHeaders({
 				'x-line-access': result.authToken
 			})
 		else:
-			raise Exception('Login failed. got result type `%s`' % (result.type) )
-
+			logs.critical('Login failed. got result type `%s`' % (result.type))
 		await self.afterLogin()
-
-	async def loginWithAuthToken(self, authToken):
+	
+	async def loginWithAuthToken(self, authToken, path=None):
+		if path:
+			with open(path, "a") as fp:
+				fp.write("auth > {}".format(authToken))
 		self.url(config.MAIN_PATH)
 		self.updateHeaders({
 			'x-line-access': authToken

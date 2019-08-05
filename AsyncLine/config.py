@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-
+import socket
+import platform
 LOGIN_PROVIDER = 1
-LOGIN_LOCATION = '127.0.0.1'
-LOGIN_DEVICE_NAME = 'Dyseo'
+LOGIN_LOCATION = socket.gethostbyname(socket.gethostname())
+LOGIN_DEVICE_NAME = str(
+	platform.python_implementation()) + "-" + str(platform.python_version())
 
 BASE_URL = 'https://legy-jp.line.naver.jp:443'
-OBS_URL = 'https://obs-sg.line-apps.com'
+OBS_URL = 'http://obs-jp.line-apps.com'
 
 WAIT_FOR_MOBILE_PATH = '/Q'
 
@@ -15,7 +17,7 @@ AUTH_PATH = '/api/v4p/rs'
 
 NORMAL_PATH  = '/S4' #/F4
 POLLING_PATH = '/P4'
-
+CALL_PATH = '/V4'
 CHANNEL_PATH = '/CH4'
 BUDDY_PATH   = '/BUDDY4'
 
