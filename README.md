@@ -1,6 +1,6 @@
 <p align="center">
     <a href="https://github.com/dyseo/AsyncLine">
-        <img src="https://i.imgur.com/cC3IzAL.png" alt="AsyncLine">
+        <img src="https://i.imgur.com/8yPDQiHr.png" alt="AsyncLine">
     </a>
     <br>
     <b>Line Messaging API for Python</b>
