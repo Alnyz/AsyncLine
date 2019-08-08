@@ -2,7 +2,7 @@
 from .auth import Auth
 from . import config as Config
 from .lib.Gen.ttypes import *
-from typing import Union, Any
+from typing import Union, Any, List
 from .connections import Connection
 import asyncio, json
 	
@@ -37,7 +37,7 @@ class Talk(Connection):
 				2 = OBS_GENERAL
 		
 		Return:
-			class :str:
+			<class 'str'>
 		"""
 		return await self.call("acquireEncryptedAccessToken", featureType)
 		
@@ -362,6 +362,37 @@ class Talk(Connection):
 		"""
 		return await self.call("findContactByUserTicket", ticket)
 	
+	async def getChatRoomAnnouncements(self, chat_ids: Union[list, str]) -> List[ChatRoomAnnouncement]:
+		return await self.call("getChatRoomAnnouncements", chat_ids)
+	
+	async def removeChatRoomAnnouncement(self, chat_id: str, announceSeq: int):
+		return await self.call("removeChatRoomAnnouncement", 0, chat_id, announceSeq)
+		
+	async def createChatRoomAnnouncement(self,
+											message: Message,
+											text: str,
+											thumbnail=None,
+											link = None) -> ChatRoomAnnouncement:
+		content = ChatRoomAnnouncementContents(
+								displayFields = 11,
+								text = text,
+								link =link if link else  "line://nv/chatMsg?chatId=%s&messageId=%s" % (message.to, message.id),
+								thumbnail = thumbnail
+							)
+		return await self.call("createChatRoomAnnouncement", 1, message.to, 0, content)
+		
+	async def getRecentMessages(self, messageBoxId, messagesCount):
+		return await self.call("getRecentMessagesV2", messageBoxId, messagesCount)
+	
+	async def getPreviousMessagesWithReadCount(self,
+										message: Message,
+										messagesCount: int = 10) -> Message:
+		id = MessageBoxV2MessageId(message.createdTime, int(message.id))
+		return await self.call("getPreviousMessagesV2WithReadCount", message.to, id, messagesCount)
+	
+	async def getServerTime(self) -> int:
+		return await self.call("getServerTime")
+		
 	async def getAllContactIds(self) -> list:
 		"""
 		A simple method to get all of mid from your contacts
@@ -1009,3 +1040,16 @@ class Talk(Connection):
 	
 	async def fetchOperations(self, localRev, count=10):
 		return await self.cl.call('fetchOperations', localRev, count)
+		
+	async def createQrcodeBase64Image(self, url: str,
+													characterSet: str = "hey",
+													imageSize: int = 10,
+													x: int = 5, y: int = 5,
+													width: int = 100, height: int = 100
+												):
+		return await self.call("createQrcodeBase64Image", url=url,
+										characterSet=characterSet,
+										imageSize=imageSize,
+										x=x, y=y,
+										width=width, height=height
+									)

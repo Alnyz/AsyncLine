@@ -1,8 +1,9 @@
+#import cmarkgfm
 from setuptools import setup, find_packages
 
 with open("README.md", encoding="utf-8") as f:
 	long_description = f.read()
-	
+
 install_requires = [
 	'frugal',
 	'rsa',
@@ -16,7 +17,7 @@ install_requires = [
 
 setup(
 	name='AsyncLine',
-	version='1.5.8',
+	version='1.5.8.2',
 	long_description=long_description,
 	long_description_content_type="text/markdown",
 	description='LINE Unofficial Python Library with Asyncio support and C++ Binding',

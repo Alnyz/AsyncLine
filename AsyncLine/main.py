@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from .models import *
 from .auth import Auth
+from .buddy import Buddy
 from .poll import Poll
 from .channel import Channel
 from .talk import Talk
@@ -28,6 +29,8 @@ class LineNext(object):
 	def __init__(self, client_name):
 		self.auth = Auth(client_name)
 		self.auth.remote(self.afterLogin)
+		self.budy = Buddy(self.auth)
+		self.auth.remote(self.budy.afterLogin)
 		self.talk = Talk(self, self.auth)
 		self.auth.remote(self.talk.afterLogin)
 		self.ch = Channel(self.auth)

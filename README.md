@@ -45,7 +45,8 @@ Please be warned: `AsyncLine` is in a very early beta. You will encounter bugs w
 - Safe-Thread thrift
 - Slightly faster (make it sure)
 - Easy to use
-- Installing from [PyPi](https://pypi.org/project/AsyncLine)
+- Documented
+- Type-hint everywhere
 
 ## Installation
 - `pip3 install AsyncLine --upgrade`

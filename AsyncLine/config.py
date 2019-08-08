@@ -6,7 +6,7 @@ LOGIN_LOCATION = socket.gethostbyname(socket.gethostname())
 LOGIN_DEVICE_NAME = str(
 	platform.python_implementation()) + "-" + str(platform.python_version())
 
-BASE_URL = 'https://legy-jp.line.naver.jp:443'
+BASE_URL = 'https://gd2.line.naver.jp:443'
 OBS_URL = 'http://obs-jp.line-apps.com'
 
 WAIT_FOR_MOBILE_PATH = '/Q'
