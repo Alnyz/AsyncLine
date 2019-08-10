@@ -66,8 +66,7 @@ client = LineNext('ios')
 client.login(name='your session name')
 
 #Run bot
-loop = asyncio.get_event_loop()
-loop.run_until_complete(client.poll.streams())
+client.poll.streams()
 ```
 Please read [Example](examples) for more detail about usage this lib
 
