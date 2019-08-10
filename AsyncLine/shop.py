@@ -88,13 +88,13 @@ class Shop(Connection):
 										pgCode: int,
 										currency: str,
 										price: str,
-										appStoreCode: int = 1#0 APPLE, 1 GOOGLE
+										appStoreCode: int = 1,#0 APPLE, 1 GOOGLE
 										redirectUrl: str = None,
 										country: str = "ID",
 										language: str = "EN"):
 		req = CoinPurchaseReservation(
-							productId=productId, currency=currency
-							pgCode=pgCode, price=price
+							productId=productId, currency=currency,
+							pgCode=pgCode, price=price,
 							appStoreCode=appStoreCode, redirectUrl=redirectUrl,
 							language=language, country=country	
 						)
