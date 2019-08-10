@@ -10,7 +10,6 @@ args:
 """
 
 cl.login(name="syncline")
-cl.auth.url('/P4')
 
 @cl.poll.hooks(type=25, filters=Filters.command("hello"))
 async def send_message(msg):
@@ -43,6 +42,4 @@ async def notifed_kick(op):
 	
 print("Program Started")
 print("Name: ",cl.profile.displayName)
-
-loop = asyncio.get_event_loop()
-loop.run_until_complete(cl.poll.streams())
+cl.poll.streams()

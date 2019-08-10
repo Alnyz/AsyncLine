@@ -7,6 +7,7 @@ from .channel import Channel
 from .talk import Talk
 from .call import Call
 from .liff import Liff
+from .shop import Shop
 from . import config
 from . import log
 from .lib.Gen.ttypes import *
@@ -24,7 +25,7 @@ logs = log.LOGGER
 
 def callback(*args, **kws):
 	print(*args, **kws)
-
+	
 class LineNext(object):
 	def __init__(self, client_name):
 		self.auth = Auth(client_name)
@@ -41,10 +42,12 @@ class LineNext(object):
 		self.auth.remote(self.poll.afterLogin)
 		self.liff = Liff(self.auth)
 		self.auth.remote(self.liff.afterLogin)
+		self.shop = Shop(self.auth)
+		self.auth.remote(self.shop.afterLogin)
 		self._session = requests.Session()
-	
-	def __validate(self, name):
-		f = SyncAsync(self.auth.createLoginSession(name)).run()
+
+	def __validate(self, name, token, mail, passwd, certt):
+		f = SyncAsync(self.auth.createLoginSession(name, token, mail, passwd, certt)).run()
 		if not f:
 			return
 		self.headers = {
@@ -61,8 +64,8 @@ class LineNext(object):
 			except:
 				pass
 	
-	def login(self, name):
-		self.__validate(name)
+	def login(self, name=None, token=None, mail=None, passwd=None, certt=None):
+		self.__validate(name, token, mail, passwd, certt)
 		
 	def save_file(self, path, raw):
 		with open(path, "wb") as f:

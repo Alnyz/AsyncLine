@@ -4,8 +4,6 @@ import asyncio
 cl = LineNext("ios")
 cl.login(name="syncline")
 
-cl.auth.url("/P4")
-
 trigger = {
 	"changed":{}
 }
@@ -18,7 +16,7 @@ async def change_profile_picture(msg):
 	Args used: path as string where image store
 	and then remove path after changing profile
 	"""
-	path = "LINE.png"
+	path = "your/path/to/image"
 	await cl.changeProfile(path=path, remove_path=True)
 	
 @cl.poll.hooks(type=25, filters=Filters.command("change group pict", prefix="", separator="\n"))
@@ -48,5 +46,6 @@ async def change_with_trigger(msg):
 			await cl.updateGroupPicture(msg.to, path=path, remove_path=True)
 			await cl.talk.sendMessage(msg.to, "Success change group pictute")
 			
-loop = asyncio.get_event_loop()
-loop.run_until_complete(cl.poll.streams())
+print("Program Started")
+print("Name: ",cl.profile.displayName)
+cl.poll.streams()

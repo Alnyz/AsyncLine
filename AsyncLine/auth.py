@@ -68,43 +68,65 @@ class Auth(Connection):
 		})
 		return r
 	
-	async def createLoginSession(self, name):
-		path = name + ".session"
-		choses = ["qr", "email", "token"]
-		if not os.path.exists(path):
-			logs.warning("Cannot find last session, trying to create")
-			await asyncio.sleep(1)
-			c = input("Choose what you want to login (qr | email | token): ")
-			while True:
-				if c not in choses:
-					logs.warning("Wrong input %s please input qr or email" % c)
-					return False
+	def splittoken(self, token):
+		t = token[6:85]
+		return token.replace(t, "...")
+	
+	def checkmail(self, mail):
+		if mail.endswith(".session"):
+			if os.path.exists(mail):
+				return True
+				
+	async def createLoginSession(self, name, token, mail, passwd, certt):
+		if token is not None:
+			await self.loginWithAuthToken(token)
+		elif mail and passwd is not None:
+			pname = name if name else mail +".session"
+			if self.checkmail(pname):
+				y = open(pname, "r").read().strip()
+				await self.loginWithCredential(mail=mail, password=passwd, cert=y)
+			else:
+				await self.loginWithCredential(mail=mail, password=passwd,
+										path = pname)
+		elif mail and passwd and cert is not None:
+			await self.loginWithCredential(mail=mail, password=passwd, cert=certt)
+		elif name is not None and token or mail is None:
+			path = name + ".session"
+			choses = ["qr", "email", "token"]
+			if not os.path.exists(path):
+				logs.warning("Cannot find last session, trying to create")
+				await asyncio.sleep(1)
+				c = input("Choose what you want to login (qr | email | token): ")
+				while True:
+					if c not in choses:
+						logs.warning("Wrong input %s please input qr or email" % c)
+						return False
+						break
+					elif c == "token":
+						token = input("Input your token: ")
+						await self.loginWithAuthToken(token.strip(), path)
+					elif c == "qr":
+						await self.loginWithQrcode(path)
+					elif c == "email":
+						mail = input("Input your email: ")
+						password = input("Input your password: ")
+						with open(path, "a") as fp:
+							fp.write("cert\n{}\n{}".format(mail, password))
+						await self.loginWithCredential(mail=mail, password=password, path=path)
+					logs.info("Login succes with %s" % c)
 					break
-				elif c == "token":
-					token = input("Input your token: ")
-					await self.loginWithAuthToken(token.strip(), path)
-				elif c == "qr":
-					await self.loginWithQrcode(path)
-				elif c == "email":
-					mail = input("Input your email: ")
-					password = input("Input your password: ")
-					with open(path, "a") as fp:
-						fp.write("cert\n{}\n{}".format(mail, password))
-					await self.loginWithCredential(mail=mail, password=password, path=path)
-				logs.info("Login succes with %s" % c)
-				break
-		else:
-			logs.info("Skip create session, found last session and trying to login")
-			with open(path, "r") as fp:
-				auth = fp.read()
-				if "auth" in auth:
-					token = auth.split(">")[1]
-					await self.loginWithAuthToken(authToken=token)
-				if "cert" in auth:
-					y = auth.split("\n")
-					await self.loginWithCredential(mail=y[1], password=y[2], cert=y[3])
-				logs.info("Login success as %s (%s)" % (self.profile.displayName, name))
-			return True
+			else:
+				logs.info("Skip create session, found last session and trying to login")
+				with open(path, "r") as fp:
+					auth = fp.read()
+					if "auth" in auth:
+						token = auth.split(">")[1]
+						await self.loginWithAuthToken(authToken=token)
+					if "cert" in auth:
+						y = auth.split("\n")
+						await self.loginWithCredential(mail=y[1], password=y[2], cert=y[3])
+		logs.info("Login success as %s" % (self.profile.displayName))
+		return True
 				
 	async def loginWithQrcode(self, path=None, callback=lambda x: print(x)):
 		self.url(config.MAIN_PATH)
@@ -195,7 +217,7 @@ class Auth(Connection):
 	
 	async def loginWithAuthToken(self, authToken, path=None):
 		if path:
-			with open(path, "a") as fp:
+			with open(path, "w") as fp:
 				fp.write("auth > {}".format(authToken))
 		self.url(config.MAIN_PATH)
 		self.updateHeaders({

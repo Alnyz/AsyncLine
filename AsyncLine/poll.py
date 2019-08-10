@@ -9,7 +9,7 @@ from functools import partial
 from thrift.transport.TTransport import TTransportException
 
 class Poll(Connection):
-	def __init__(self, client_name):
+	def __init__(self, client_name, loop=None):
 		super().__init__(config.POLLING_PATH)
 		self.transport.setTimeout(-1)
 		self.LA, self.UA = models.ApplicationHeader(client_name).get()
@@ -18,6 +18,7 @@ class Poll(Connection):
 			'x-line-application': self.LA,
 		})
 		self.revision = 0
+		self.loop = loop if loop else asyncio.get_event_loop()
 		self.op_handler = {}
 		if client_name in ['android', 'android2']:
 			self.fetch = self.fetchOps
@@ -35,7 +36,7 @@ class Poll(Connection):
 		
 	def setupConnection(self):
 		self.updateHeaders({
-			'x-line-access': self.authToken
+			'X-Line-Access': self.authToken
 		})
 
 	def hooks(self, **parent_kw):
@@ -47,7 +48,10 @@ class Poll(Connection):
 			})
 			return wrapper
 		return parent
-
+	
+	def streams(self):
+		self.loop.run_until_complete(self.run_fetch())
+		
 	async def fetchOps(self, localRev, count=10):
 		return await self.call('fetchOps', localRev, count, 0, 0)
 		
@@ -60,7 +64,7 @@ class Poll(Connection):
 	async def setRevision(self, revision):
 		self.revision = max(revision, self.revision)
 		
-	async def streams(self, limit=1):
+	async def run_fetch(self, limit=1):
 		while True:
 			try:
 				ops = await self.fetch(self.revision, limit)

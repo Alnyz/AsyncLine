@@ -11,8 +11,6 @@ args:
 
 cl.login(name="syncline")
 
-cl.auth.url('/P4')
-
 @cl.poll.hooks(type=25, filters=Filters.text)
 async def echo_message(msg):
 	"""
@@ -28,6 +26,4 @@ async def echo_message(msg):
 
 print("Program Started")
 print("Name: ",cl.profile.displayName)
-
-loop = asyncio.get_event_loop()
-loop.run_until_complete(cl.poll.streams())
+cl.poll.streams()

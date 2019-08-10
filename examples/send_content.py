@@ -4,8 +4,6 @@ import asyncio, time
 cl = LineNext("ios")
 cl.login(name="syncline")
 
-cl.auth.url("/P4")
-
 @cl.poll.hooks(type=25, filters=Filters.command("gif"))
 async def send_gif(msg):
 	url = "http://media1.giphy.com/media/kbusvRjNLcJmiTQ1os/200.gif"
@@ -27,6 +25,4 @@ async def send_image(msg):
 
 print("Program Started")
 print("Name: ",cl.profile.displayName)
-
-loop = asyncio.get_event_loop()
-loop.run_until_complete(cl.poll.streams())
+cl.poll.streams()
