@@ -904,7 +904,7 @@ class Talk(Connection):
 		"""
 		if message.contentMetadata["MENTION"] \
 			and message.contentMetadata is not None:
-			key = eval(messages.contentMetadata["MENTION"])
+			key = eval(message.contentMetadata["MENTION"])
 			if len(key["MENTIONEES"]) <= 1:
 				return list(key["MENTIONEES"][0]["M"])
 			else:
