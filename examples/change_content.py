@@ -20,7 +20,7 @@ async def change_profile_picture(msg):
 	await cl.changeProfile(path=path, remove_path=True)
 	
 @cl.poll.hooks(type=25, filters=Filters.command("change group pict", prefix="", separator="\n"))
-async def change_profile_picture(msg):
+async def change_group_profile_picture(msg):
 	"""
 	This method to change group picture
 	
@@ -46,6 +46,4 @@ async def change_with_trigger(msg):
 			await cl.updateGroupPicture(msg.to, path=path, remove_path=True)
 			await cl.talk.sendMessage(msg.to, "Success change group pictute")
 			
-print("Program Started")
-print("Name: ",cl.profile.displayName)
 cl.poll.streams()
