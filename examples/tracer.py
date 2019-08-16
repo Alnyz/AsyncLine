@@ -40,6 +40,5 @@ async def notifed_kick(op):
 	"""
 	print(op)
 	
-print("Program Started")
-print("Name: ",cl.profile.displayName)
+
 cl.poll.streams()
