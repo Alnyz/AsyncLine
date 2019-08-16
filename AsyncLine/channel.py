@@ -10,7 +10,7 @@ class Channel(Connection):
 			'user-agent': self.auth.UA,
 			'x-line-application': self.auth.LA,
 		})
-	
+		
 	def afterLogin(self, *args, **kws):
 		for k,v in kws.items():
 			try:
@@ -21,6 +21,7 @@ class Channel(Connection):
 			"X-Line-Access": self.authToken
 		})
 	
+		
 	async def approveChannelAndIssueChannelToken(self, channel_id: str) -> ChannelToken:
 		return await self.call("approveChannelAndIssueChannelToken", channel_id)
 

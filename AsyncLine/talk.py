@@ -728,6 +728,7 @@ class Talk(Connection):
 		Return:
 			<class 'bool'> or <class 'AsyncLine.lib.Gen.ttypes.Room'>
 		"""
+		mids = mids if isinstance(mids, list) else [mids]
 		lenght_mids = len(mids)//20+1
 		text = '' if first_text is None else first_text
 		mention = '@m{}'.format('\n' if pretty else ' ')
@@ -735,7 +736,7 @@ class Talk(Connection):
 			mentionees = []
 			if enum:
 				for no, mid in enumerate(mids[count*20:(count+1)*20], 1):
-					text += '{} {}. {}'.format(separator, no, mention)
+					text += '{}{}. {}'.format(separator, no, mention)
 					slen = len(text) - 3
 					elen = len(text) + 3
 					mentionees.append({'S': str(slen), 'E': str(elen - 4), 'M': mid})
@@ -743,7 +744,7 @@ class Talk(Connection):
 						text += '' if end_text is None else end_text
 			else:
 				for mid in mids[count*20:(count+1)*20]:
-					text += '%s %s' % (separator, mention)
+					text += '%s%s' % (separator, mention)
 					slen = len(text) - 3
 					elen = len(text) + 3
 					mentionees.append({'S': str(slen), 'E': str(elen - 4), 'M': mid})
@@ -777,8 +778,7 @@ class Talk(Connection):
 		 Return:
 		 	<clas 'Message'>
 		 """
-		location = Location(
-							title="Location" if not title else title,
+		location = Location(title="Location" if not title else title,
 							address=address,
 							phone=phone,
 							latitude=latitude,
@@ -806,13 +806,13 @@ class Talk(Connection):
 			<class 'AsyncLine.lib.Gen.ttypes.Message'>
 		"""	
 		msg = Message(to=chat_id,
-							text = text,
-							contentType =  contentType,
-							contentMetadata = {'LINE_RECV':'1'} 
-							if contentMetadata is None \
-							else contentMetadata,
-							*args, **kwrgs
-						)
+						text = text,
+						contentType =  contentType,
+						contentMetadata = {'LINE_RECV':'1'} 
+						if contentMetadata is None \
+						else contentMetadata,
+						*args, **kwrgs
+					)
 		
 		return await self.call("sendMessage", 0, msg)
 		
@@ -836,21 +836,21 @@ class Talk(Connection):
 			<class 'AsyncLine.lib.Gen.ttypes.Message'>
 		"""	
 		return await self.sendMessage(chat_id,
-											text,
-											contentType = contentType,
-											contentMetadata = contentMetadata,
-											relatedMessageServiceCode=1,
-											messageRelationType = 3,
-											relatedMessageId = relatedMessage_id
-										)
+										text,
+										contentType = contentType,
+										contentMetadata = contentMetadata,
+										relatedMessageServiceCode=1,
+										messageRelationType = 3,
+										relatedMessageId = relatedMessage_id
+									)
 		
 	async def sendMusicMessage(self,
-									chat_id: str,
-									title: str = "Music Messaging",
-									sub_text: str = "Music Message",
-									url: str = None,
-									preview_url: str = None,
-								) -> Message:
+								chat_id: str,
+								title: str = "Music Messaging",
+								sub_text: str = "Music Message",
+								url: str = None,
+								preview_url: str = None,
+							) -> Message:
 		m = self.auth.profile.mid
 		url = url if url else "line.me/ti/p/~{}".format((await self.generateUserTicket(-1)).id)
 		preview_url = preview_url if preview_url else 'https://obs.line-apps.com/os/p/{}'.format(m)
@@ -906,7 +906,7 @@ class Talk(Connection):
 			and message.contentMetadata is not None:
 			key = eval(message.contentMetadata["MENTION"])
 			if len(key["MENTIONEES"]) <= 1:
-				return list(key["MENTIONEES"][0]["M"])
+				return key["MENTIONEES"][0]["M"]
 			else:
 				mm = []
 				for mid in key["MENTIONEES"]:
@@ -914,10 +914,10 @@ class Talk(Connection):
 				return mm
 				
 	async def sendAudio(self,
-								to: str,
-								path: str = None,
-								url: str = None,
-								remove_path: bool = False) -> bool:
+						to: str,
+						path: str = None,
+						url: str = None,
+						remove_path: bool = False) -> bool:
 		"""
 		Use this method to send Audio message
 		important if args url is given, it cannot use the path
@@ -940,10 +940,10 @@ class Talk(Connection):
 		return self.cl.uploadObjTalk(path=path, types='audio', remove_path=remove_path, objId=objectId)
 		
 	async def sendImage(self,
-								to: str,
-								path: str = None,
-								url: str = None,
-								remove_path: bool = False) -> bool:
+						to: str,
+						path: str = None,
+						url: str = None,
+						remove_path: bool = False) -> bool:
 		"""
 		Use this method to send Image message
 		important if args url is given, it cannot use the path
@@ -966,10 +966,10 @@ class Talk(Connection):
 		return await self.cl.uploadObjTalk(path=path, types='image', remove_path=remove_path, objId=objectId)
 	
 	async def sendVideo(self,
-								to: str,
-								path: str = None,
-								url: str = None,
-								remove_path: bool = False) -> bool:
+						to: str,
+						path: str = None,
+						url: str = None,
+						remove_path: bool = False) -> bool:
 		"""
 		Use this method to send Video message
 		important if args url is given, it cannot use the path
@@ -992,10 +992,10 @@ class Talk(Connection):
 		return await self.cl.uploadObjTalk(path=path, types='video', remove_path=remove_path, objId=objectId)
 	
 	async def sendGif(self,
-								to: str,
-								path: str = None,
-								url: str = None,
-								remove_path: bool = False) -> bool:
+						to: str,
+						path: str = None,
+						url: str = None,
+						remove_path: bool = False) -> bool:
 		"""
 		Use this method to send Gif message
 		important if args url is given, it cannot use the path
@@ -1016,7 +1016,11 @@ class Talk(Connection):
 			
 		return await self.cl.uploadObjTalk(to=to, path=path, types='gif', remove_path=remove_path)
 	
-	async def sendFile(self, to: str, path: str = None, file_name: str = None):
+	async def sendFile(self,
+						to: str,
+						path: str = None,
+						file_name: str = None,
+						remove_path=False):
 		"""
 		Use this method to send File message
 		important if args url is given, it cannot use the path
@@ -1025,7 +1029,8 @@ class Talk(Connection):
 			to: mid of group or user will be send
 			path: string of path where file will be send
 			url: string of url from file
-		
+			remove_path: set a bool parameter for deleting temp file after download content
+			
 		Return:
 			<class 'bool'> is True
 		"""
@@ -1042,11 +1047,11 @@ class Talk(Connection):
 		return await self.cl.call('fetchOperations', localRev, count)
 		
 	async def createQrcodeBase64Image(self, url: str,
-													characterSet: str = "hey",
-													imageSize: int = 10,
-													x: int = 5, y: int = 5,
-													width: int = 100, height: int = 100
-												):
+											characterSet: str = "hey",
+											imageSize: int = 10,
+											x: int = 5, y: int = 5,
+											width: int = 100, height: int = 100
+										):
 		return await self.call("createQrcodeBase64Image", url=url,
 										characterSet=characterSet,
 										imageSize=imageSize,
