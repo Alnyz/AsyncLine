@@ -42,8 +42,7 @@ Please be warned: `AsyncLine` is in a very early beta. You will encounter bugs w
 
 ## Features
 - Fully Asynchronously
-- Safe-Thread thrift
-- Slightly faster (make it sure)
+- Slightly faster
 - Easy to use
 - Documented
 - Type-hint everywhere
@@ -65,6 +64,23 @@ import asyncio
 client = LineNext('ios')
 client.login(name='your session name')
 
+"""
+Args login:
+	name: string for create new session for next login, no effect if using token login
+	token: string of token for login using token, no need to create session name
+	mail: string of email that using for login using email, you can pass name session for custom session
+			default using string of email for name session
+	passwd: password of email used
+	cert: (string | optional) if you have cert pass at this args for easy login using email
+			sure you can use custom session name for this too
+	qr: boolean pass True if want to login using authQr, and you can use custom session name
+		e.g client.login(name="sync", qr=True) this needed for next login
+"""
+
+@client.poll.hooks(type=26, filters=Filters.command("hello"))
+async def hello_message(msg):
+	await client.talk.sendMessage(msg.to, "Heyy!")
+	
 #Run bot
 client.poll.streams()
 ```

@@ -52,8 +52,8 @@ class LineNext(object):
 		self._session = requests.Session()
 		self.timelineHeaders = {}
 
-	def __validate(self, name, token, mail, passwd, certt):
-		f = SyncAsync(self.auth.createLoginSession(name, token, mail, passwd, certt)).run()
+	def __validate(self, name, token, mail, passwd, certt, qr):
+		f = SyncAsync(self.auth.createLoginSession(name, token, mail, passwd, certt, qr)).run()
 		if not f:
 			return
 		self.headers = {
@@ -69,8 +69,8 @@ class LineNext(object):
 			except:
 				pass
 	
-	def login(self, name=None, token=None, mail=None, passwd=None, certt=None):
-		self.__validate(name, token, mail, passwd, certt)
+	def login(self, name=None, token=None, mail=None, passwd=None, certt=None, qr=False):
+		self.__validate(name, token, mail, passwd, certt, qr)
 		
 	def save_file(self, path, raw):
 		with open(path, "wb") as f:

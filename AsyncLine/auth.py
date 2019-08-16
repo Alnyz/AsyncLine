@@ -77,7 +77,7 @@ class Auth(Connection):
 			if os.path.exists(mail):
 				return True
 				
-	async def createLoginSession(self, name, token, mail, passwd, certt):
+	async def createLoginSession(self, name, token, mail, passwd, certt, qr):
 		if token is not None:
 			await self.loginWithAuthToken(token)
 		elif mail and passwd is not None:
@@ -90,6 +90,12 @@ class Auth(Connection):
 										path = pname)
 		elif mail and passwd and cert is not None:
 			await self.loginWithCredential(mail=mail, password=passwd, cert=certt)
+		elif qr or name is not None:
+			if name is not None and os.path.exists(name+'.session'):
+				token = open(name+'.session', "r").read()
+				await self.loginWithAuthToken(token.split(">")[1])
+			else:
+				await self.loginWithQrcode(path=name+".session" if name else None)
 		elif name is not None and token or mail is None:
 			path = name + ".session"
 			choses = ["qr", "email", "token"]
