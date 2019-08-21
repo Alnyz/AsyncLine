@@ -34,11 +34,11 @@ class Buddy(Connection):
 					)
 	
 	async def getBuddyContacts(self,
-										language: str ="EN",
-										country: str ="ID",
-										classification: str = "",
-										fromIndex: int = 1,
-										count: int = 10):
+							language: str ="EN",
+							country: str ="ID",
+							classification: str = "",
+							fromIndex: int = 1,
+							count: int = 10):
 		return await self.call("getBuddyContacts", language=language, \
 						country = country, classification = classification, \
 						fromIndex = fromIndex, count = count)
@@ -56,23 +56,23 @@ class Buddy(Connection):
 		return await self.call("getNewlyReleasedBuddyIds", country)
 		
 	async def getPopularBuddyBanner(self,
-												language: str = "EN",
-												country: str = "ID",
-												applicationType: Union[ApplicationType] = 16,
-												resourceSpecification: str = ""
-											):
+									language: str = "EN",
+									country: str = "ID",
+									applicationType: Union[ApplicationType] = 16,
+									resourceSpecification: str = ""
+								):
 		return await self.call("getPopularBuddyBanner",
 								language=language, country=country,
 								applicationType=applicationType, resourceSpecification=resourceSpecification
 							)
 	
 	async def getPopularBuddyLists(self,
-											language: str = "EN",
-											country: str = "ID") -> Union[List[BuddyList]]:
+									language: str = "EN",
+									country: str = "ID") -> Union[List[BuddyList]]:
 		return await self.call("getPopularBuddyLists", language=language, country=country)
 		
 	async def getPromotedBuddyContacts(self,
-											language: str = "EN",
-											country: str = "ID") -> Contact:
+									language: str = "EN",
+									country: str = "ID") -> Contact:
 		return await self.call("getPromotedBuddyContacts", language=language, country=country)
 		

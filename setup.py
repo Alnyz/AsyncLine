@@ -17,7 +17,7 @@ install_requires = [
 
 setup(
 	name='AsyncLine',
-	version='1.5.8.6',
+	version='1.5.8.7',
 	long_description=long_description,
 	long_description_content_type="text/markdown",
 	description='LINE Unofficial Python Library with Asyncio support and C++ Binding',

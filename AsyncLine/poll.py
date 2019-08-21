@@ -6,7 +6,9 @@ from .filters import Filter
 from .connections import Connection
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from .lib.Gen.ttypes import *
 from thrift.transport.TTransport import TTransportException
+
 
 class Poll(Connection):
 	def __init__(self, client_name, loop=None):
@@ -14,8 +16,8 @@ class Poll(Connection):
 		self.transport.setTimeout(-1)
 		self.LA, self.UA = models.ApplicationHeader(client_name).get()
 		self.updateHeaders({
-			'user-agent': self.UA,
-			'x-line-application': self.LA,
+			'User-Agent': self.UA,
+			'X-Line-Application': self.LA,
 		})
 		self.revision = 0
 		self.loop = loop if loop else asyncio.get_event_loop()
@@ -73,6 +75,7 @@ class Poll(Connection):
 					for handle, hFuncs in self.op_handler.items():
 						if handle == op.type:
 							for hFunc in hFuncs:
+								#tasks = []
 								for k, v in hFunc.items():
 									if hFunc[k] is not None and isinstance(hFunc[k], Filter):
 										if hFunc[k](op.message):
@@ -85,5 +88,9 @@ class Poll(Connection):
 				continue
 			except TTransportException:
 				break
+			except KeyboardInterrupt:
+				raise
+			except ShouldSyncException:
+				pass
 			except Exception:
 				print(traceback.format_exc())

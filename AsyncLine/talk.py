@@ -836,12 +836,12 @@ class Talk(Connection):
 			<class 'AsyncLine.lib.Gen.ttypes.Message'>
 		"""	
 		return await self.sendMessage(chat_id,
-										text,
-										contentType = contentType,
-										contentMetadata = contentMetadata,
-										relatedMessageServiceCode=1,
-										messageRelationType = 3,
-										relatedMessageId = relatedMessage_id
+									text,
+									contentType = contentType,
+									contentMetadata = contentMetadata,
+									relatedMessageServiceCode=1,
+									messageRelationType = 3,
+									relatedMessageId = relatedMessage_id
 									)
 		
 	async def sendMusicMessage(self,
@@ -969,7 +969,8 @@ class Talk(Connection):
 						to: str,
 						path: str = None,
 						url: str = None,
-						remove_path: bool = False) -> bool:
+						remove_path: bool = False,
+						chunked: bool = False) -> bool:
 		"""
 		Use this method to send Video message
 		important if args url is given, it cannot use the path
@@ -986,7 +987,7 @@ class Talk(Connection):
 		if path is not None and url is not None:
 			raise Exception("if args url is given, it cannot use the path")
 		if url is not None and path is None:
-			path = await self.cl.download_fileUrl(url)
+			path = await self.cl.download_fileUrl(url, chunked=chunked)
 			
 		objectId = (await self.sendMessage(to, text=None, contentMetadata={'VIDLEN': '60000','DURATION': '60000'}, contentType = 2)).id
 		return await self.cl.uploadObjTalk(path=path, types='video', remove_path=remove_path, objId=objectId)

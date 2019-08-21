@@ -51,6 +51,8 @@ def create(name: str, func: callable, **kwargs) -> type:
 class Filters:
 	create = create
 	
+	prefix = [".", "/", "!", ">"]
+	
 	#Messages
 	text = create("Text", lambda _,m: bool(m.contentType == 0 and m.text is not None))
 	"""Filter text messages."""
@@ -125,9 +127,9 @@ class Filters:
 	
 	@staticmethod
 	def command(commands: str or list,
-					prefix: str or list = "/",
+					prefix: str or list = prefix,
 					separator: str = " ",
-					case_sensitive: bool = True):
+					case_sensitive: bool = False):
 		"""Filter commands, i.e.: text messages starting with "/" or any other custom prefix.
 		        Args:
 		            command (``str`` | ``list``):

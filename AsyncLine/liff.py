@@ -8,6 +8,7 @@ from .http_client import HttpClient
 from frugal.provider import FServiceProvider
 from frugal.context import FContext
 from thrift.protocol.TCompactProtocol import TCompactProtocolAcceleratedFactory
+
 class Connection(object):
 	def __init__(self):
 		self.context = FContext()

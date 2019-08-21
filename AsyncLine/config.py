@@ -2,11 +2,11 @@
 import socket
 import platform
 LOGIN_PROVIDER = 1
-LOGIN_LOCATION = socket.gethostbyname(socket.gethostname())
+LOGIN_LOCATION = "127.0.0.0"
 LOGIN_DEVICE_NAME = str(
 	platform.python_implementation()) + "-" + str(platform.python_version())
 
-BASE_URL = 'https://legy-jp.line.naver.jp:443'
+BASE_URL = 'https://legy-jp.line.naver.jp'
 OBS_URL = 'http://obs-jp.line-apps.com'
 TIMELINE_API = 'https://legy-jp.line.naver.jp/mh/api'
 TIMELINE_MH = 'https://legy-jp.line.naver.jp/mh'

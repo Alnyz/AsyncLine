@@ -281,17 +281,16 @@ class LineNext(object):
 		if remove_path:
 			self.delete_file(path)
 	
-	async def updateProfile(self,
+	async def changeProfile(self,
 						path = None,
 						url = None,
 						remove_path = True,
 						type = "p",
 						chunked = False) -> bool:
 		"""
-		Use this method to change group picture.
+		Use this method to change profile picture.
 		
 		Args:
-			groupid: string of mid from group
 			path: string from path that where file to upload
 			url: string of image content to upload
 			remove_path: bool pass True if want to deleted cache after download
@@ -333,7 +332,7 @@ class LineNext(object):
 		r_vp = await self.post_content(config.OBS_URL + '/talk/vp/upload.nhn', data=data, files=files)
 		if r_vp.status_code != 201:
 			raise Exception('Update profile video picture failure.')
-		await self.updateProfile(path=img_path, type='vp', chunked=chunked)
+		await self.changeProfile(path=img_path, type='vp', chunked=chunked)
 	
 	async def updateCover(self,
 						path=None,
