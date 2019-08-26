@@ -5,6 +5,7 @@ from .connections import Connection
 from .main import LineNext
 from .proto import *
 from .filters import *
+from .database import *
 from .timeline import *
 from .log import *
 from .shop import *

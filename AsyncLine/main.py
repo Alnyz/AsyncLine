@@ -24,14 +24,16 @@ import json
 import tempfile
 import shutil
 from ffmpy import FFmpeg
+
 logs = log.LOGGER
 
 def callback(*args, **kws):
 	print(*args, **kws)
 	
 class LineNext(object):
-	def __init__(self, client_name):
-		self.auth = Auth(client_name)
+	def __init__(self, client_name, storage=None):
+		self.storage = storage
+		self.auth = Auth(client_name, storage)
 		self.auth.remote(self.afterLogin)
 		self.budy = Buddy(self.auth)
 		self.auth.remote(self.budy.afterLogin)
@@ -52,8 +54,8 @@ class LineNext(object):
 		self._session = requests.Session()
 		self.timelineHeaders = {}
 
-	def __validate(self, name, token, mail, passwd, certt, qr):
-		f = SyncAsync(self.auth.createLoginSession(name, token, mail, passwd, certt, qr)).run()
+	def __validate(self, name, token, mail, passwd, cert, qr):
+		f = SyncAsync(self.auth.createLoginSession(name, token, mail, passwd, cert, qr)).run()
 		if not f:
 			return
 		self.headers = {
@@ -69,10 +71,11 @@ class LineNext(object):
 			except:
 				pass
 	
-	def login(self, name=None, token=None, mail=None, passwd=None, certt=None, qr=False):
-		self.__validate(name, token, mail, passwd, certt, qr)
+	def login(self, name=None, token=None, mail=None, passwd=None, cert=None, qr=False):
+		self.__validate(name, token, mail, passwd, cert, qr)
 		
 	def save_file(self, path, raw):
+		#TODO: Using Database for saving files
 		with open(path, "wb") as f:
 			if isinstance(raw, HTTPResponse):
 				shutil.copyfileobj(raw, f)

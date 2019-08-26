@@ -23,9 +23,9 @@ class HttpClient(FHttpTransport):
 		self.loop = loop if loop else asyncio.get_event_loop()
 		self.setTimeout(timeout) 
 		self._headers = {
-			'content-type': 'application/x-thrift',
-			'accept': 'application/x-thrift',
-			'user-agent': 'Python Frugal Thrift',
+			'Content-Type': 'application/x-thrift',
+			'Accept': 'application/x-thrift',
+			'User-Agent': 'Python/Frugal Thrift',
 		}
 		
 	def setTimeout(self, timeout):

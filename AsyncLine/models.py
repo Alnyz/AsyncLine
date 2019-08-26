@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import asyncio, platform
-
+from . import config
 class SyncAsync(object):
 	def __init__(self, _coroutine):
 		self.loop = asyncio.get_event_loop()
@@ -13,11 +13,11 @@ class ApplicationHeader(object):
 	MAP = {
 		'ios': {
 			'UA': "Line/8.14.2", # "Line/7.14.0"
-			'LA': "IOSIPAD\t8.14.2\tiPhone_OS\t11.3",
+			'LA': "IOSIPAD\t8.14.2\t{}\t7.0.0".format(config.LOGIN_DEVICE_NAME),
 		},
 		'ios2': {
-			'UA': "LINE/8.14.5",
-			'LA': "IOS\t8.14.5\tiOS\t10.2",
+			'UA': "LINE/9.13.1",
+			'LA': "IOS\t9.13.1\t{}\t8.2.0".format(config.LOGIN_DEVICE_NAME),
 		},
 		'desktop': {
 			'UA': "DESKTOP:MAC:10.9.4-MAVERICKS-x64(5.1.2)", #"DESKTOP:MAC:10.10.2-YOSEMITE-x64(4.5.0)",
@@ -28,8 +28,8 @@ class ApplicationHeader(object):
 			'LA': "CHROMEOS\t1.4.11\tChrome_OS\t1",
 		},
 		'android': {
-			'UA': "androidapp.line/8.2.0 (Linux; U; Android 4.4.4; en-US; 2014817 Build/NDR9M)",
-			'LA': "ANDROID\t8.2.0\tAndroid\tOS\t7.0",
+			'UA': "Line/9.14.1",
+			'LA': "ANDROID\t9.14.1\tAndroid\tOS\t7.0",
 		},
 		'androidlite': {
 			'UA':"androidapp.line/7.5.0 (Linux; U; Android 4.4.4; en-US; 2014817 Build/KTU84P)" ,

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import os, sys
 import hmac
-import time, base64
+import time
+import base64
 import asyncio
 import hashlib
 import rsa
@@ -16,7 +17,7 @@ from .lib.Gen.ttypes import *
 logs = log.LOGGER
 
 class Auth(Connection):
-	def __init__(self, client_name):
+	def __init__(self, client_name, storage):
 		super().__init__(config.MAIN_PATH)
 		self.LA, self.UA = models.ApplicationHeader(client_name).get()
 		self.updateHeaders({
@@ -25,23 +26,23 @@ class Auth(Connection):
 			'X-Line-Carrier': config.CARRIER,
 			"x-lal":"in_ID"
 		})
+		self.token_db = storage
 		self.afterLoginRemote = []
 
 	def remote(self, func):
 		self.afterLoginRemote.append(func)
-
 	#crypto
 	def __write_val(self, data):
 		return (chr(len(data)) + data)
-		
+
 	def __gen_message(self, tuple_msg):
 		return (''.join(tuple_msg)).encode('utf-8')
-		
+
 	def __rsa_crypt(self, message,RSA):
 		pub_key = rsa.PublicKey(int(RSA.nvalue, 16), int(RSA.evalue, 16))
 		crypto  = rsa.encrypt(message, pub_key)
 		return crypto
-		
+
 	def _encryptedEmailAndPassword(self, mail, passwd, RSA):
 		message_ = (
 			self.__write_val(RSA.sessionKey),
@@ -51,7 +52,7 @@ class Auth(Connection):
 		message = self.__gen_message(message_)
 		crypto  = self.__rsa_crypt(message, RSA).hex()
 		return crypto
-		
+
 	def _encryptedPassword(self, phone, password, RSA):
 		message_ = (
 			self.__write_val(RSA.sessionKey),
@@ -68,76 +69,130 @@ class Auth(Connection):
 		})
 		return r
 	
-	def splittoken(self, token):
-		t = token[6:85]
-		return token.replace(t, "...")
-	
 	def checkmail(self, mail):
 		if mail.endswith(".session"):
 			if os.path.exists(mail):
 				return True
-				
+	
+	def _validate_col(self, *val):
+		r = self.token_db.auth_col.find_one(*val)
+		if r:
+			return True
+		else:
+			return False
+		
+	async def createLoginCmd(self, name):
+		choses = ["qr", "email", "token"]
+		if not self._validate_col({'name': name}):
+			logs.warning("Cannot find last session, trying to create")
+			c = input("Choose what you want to login (qr | email | token): ")
+			while True:
+				if c not in choses:
+					logs.warning("Wrong input %s please input qr or email" % c)
+					return False
+					break
+				elif c == "token":
+					token = input("Input your token: ")
+					await self.loginWithAuthToken(token.strip())
+				elif c == "qr":
+					await self.loginWithQrcode(name)
+				elif c == "email":
+					mail = input("Input your email: ")
+					password = input("Input your password: ")
+					self.token_db.auth_col.insert_one({
+						'name': name,
+						'mail': mail,
+						'passwd': password
+					})
+					await self.loginWithCredential(mail=mail, name=name, password=password)
+				break
+		else:
+			k = self.token_db.auth_col.find({'name': name})
+			for i in k:
+				if 'cert' in i.keys():
+					await self.loginWithCredential(mail=i['mail'],
+								name=i['name'],
+								password=i['passwd'],
+								cert=i['cert'])
+				elif 'token' in i.keys():
+					await self.loginWithAuthToken(i['token'])
+			
 	async def createLoginSession(self, name, token, mail, passwd, certt, qr):
 		if token is not None:
 			await self.loginWithAuthToken(token)
 		elif mail and passwd is not None:
-			pname = name if name else mail +".session"
-			if self.checkmail(pname):
-				y = open(pname, "r").read().strip()
-				await self.loginWithCredential(mail=mail, password=passwd, cert=y)
+			if self.token_db is not None:
+				_name = name if name else mail
+				if self._validate_col({'name': _name, 'mail': mail}):
+					c = self.token_db.auth_col.find_one({'name': _name, 'mail': mail})
+					await self.loginWithCredential(mail=mail, password=passwd, cert=c['cert'])
+				else:
+					await self.loginWithCredential(mail=mail, password=passwd, name=_name)
 			else:
-				await self.loginWithCredential(mail=mail, password=passwd,
-										path = pname)
+				pname = name if name else mail +".session"
+				if self.checkmail(pname):
+					y = open(pname, "r").read().strip()
+					await self.loginWithCredential(mail=mail, password=passwd, cert=y)
+				else:
+					await self.loginWithCredential(mail=mail, password=passwd,
+											path = pname)
 		elif mail and passwd and cert is not None:
 			await self.loginWithCredential(mail=mail, password=passwd, cert=certt)
-		elif qr or name is not None:
-			if name is not None and os.path.exists(name+'.session'):
+		elif qr and name is not None:
+			if self.token_db is not None:
+				if self._validate_col({'name': name}):
+					token = self.token_db.auth_col.find_one({'name': name})
+					await self.loginWithAuthToken(token['token'])
+				else:
+					await self.loginWithQrcode(name)
+			elif not self.token_db and name is not None and os.path.exists(name+'.session'):
 				token = open(name+'.session', "r").read()
 				await self.loginWithAuthToken(token.split(">")[1])
 			else:
 				await self.loginWithQrcode(path=name+".session" if name else None)
 		elif name is not None and token or mail is None:
-			path = name + ".session"
-			choses = ["qr", "email", "token"]
-			if not os.path.exists(path):
-				logs.warning("Cannot find last session, trying to create")
-				await asyncio.sleep(1)
-				c = input("Choose what you want to login (qr | email | token): ")
-				while True:
-					if c not in choses:
-						logs.warning("Wrong input %s please input qr or email" % c)
-						return False
-						break
-					elif c == "token":
-						token = input("Input your token: ")
-						await self.loginWithAuthToken(token.strip(), path)
-					elif c == "qr":
-						await self.loginWithQrcode(path)
-					elif c == "email":
-						mail = input("Input your email: ")
-						password = input("Input your password: ")
-						with open(path, "a") as fp:
-							fp.write("cert\n{}\n{}".format(mail, password))
-						await self.loginWithCredential(mail=mail, password=password, path=path)
-					logs.info("Login succes with %s" % c)
-					break
+			if self.token_db is not None:
+				await self.createLoginCmd(name)
 			else:
-				logs.info("Skip create session, found last session and trying to login")
-				with open(path, "r") as fp:
-					auth = fp.read()
-					if "auth" in auth:
-						token = auth.split(">")[1]
-						await self.loginWithAuthToken(authToken=token)
-					if "cert" in auth:
-						y = auth.split("\n")
-						await self.loginWithCredential(mail=y[1], password=y[2], cert=y[3])
+				path = name + ".session"
+				choses = ["qr", "email", "token"]
+				if not os.path.exists(path):
+					logs.warning("Cannot find last session, trying to create")
+					await asyncio.sleep(1)
+					c = input("Choose what you want to login (qr | email | token): ")
+					while True:
+						if c not in choses:
+							logs.warning("Wrong input %s please input qr or email" % c)
+							return False
+							break
+						elif c == "token":
+							token = input("Input your token: ")
+							await self.loginWithAuthToken(token.strip(), path)
+						elif c == "qr":
+							await self.loginWithQrcode(path)
+						elif c == "email":
+							mail = input("Input your email: ")
+							password = input("Input your password: ")
+							with open(path, "a") as fp:
+								fp.write("cert\n{}\n{}".format(mail, password))
+							await self.loginWithCredential(mail=mail, password=password, path=path)
+						break
+				else:
+					with open(path, "r") as fp:
+						auth = fp.read()
+						if "auth" in auth:
+							token = auth.split(">")[1]
+							await self.loginWithAuthToken(authToken=token)
+						if "cert" in auth:
+							y = auth.split("\n")
+							await self.loginWithCredential(mail=y[1], password=y[2], cert=y[3])
 		logs.info("Login success as %s" % (self.profile.displayName))
 		return True
 				
-	async def loginWithQrcode(self, path=None, callback=lambda x: print(x)):
+	async def loginWithQrcode(self, path=None):
 		self.url(config.MAIN_PATH)
 		qr = await self.call('getAuthQrcode', True, config.LOGIN_DEVICE_NAME, "")
-		callback("line://au/q/"+qr.verifier)
+		print("line://au/q/"+qr.verifier)
 		r = self.waitForPhoneConfirm(qr.verifier)
 		vr = r.json()['result']['verifier']
 		self.url(config.AUTH_PATH)
@@ -156,17 +211,23 @@ class Auth(Connection):
 		)
 		lr = await self.call('loginZ', rq)
 		self.updateHeaders({
-			'x-line-access': lr.authToken
+			'X-Line-Access': lr.authToken
 		})
 		self.authToken = lr.authToken
 		self.cert = lr.certificate
-		if path:
+		if path and path.endswith(".session"):
 			with open(path, "w") as fp:
 				text = "auth > {}".format(lr.authToken)
 				fp.write(text)
+		elif self.token_db is not None:
+			if not self._validate_col({'name': path}):
+				self.token_db.auth_col.insert_one({
+					'name': path,
+					'token': self.authToken
+				})
 		await self.afterLogin()
 
-	async def loginWithCredential(self, mail, password, cert=None, callback=lambda x: print(x), path=None):
+	async def loginWithCredential(self, mail, password, name=None, cert=None, path=None):
 		self.url(config.MAIN_PATH)
 		rsakey = await self.call('getRSAKeyInfo', config.LOGIN_PROVIDER)
 		crypt  = self._encryptedEmailAndPassword(mail, password, rsakey)
@@ -187,7 +248,7 @@ class Auth(Connection):
 		result = await self.call('loginZ', rq)
 		self.url(config.MAIN_PATH)
 		if result.type == 3:
-			callback("Please confirm this code on your device %s"% (result.pinCode))
+			print("Please confirm this code on your device %s"% (result.pinCode))
 			r = self.waitForPhoneConfirm(result.verifier)
 			rq = LoginRequest(
 				LoginType.QRCODE,
@@ -202,32 +263,44 @@ class Auth(Connection):
 			self.url(config.AUTH_PATH)
 			result = await self.call('loginZ', rq)
 			self.updateHeaders({
-				'x-line-access': result.authToken,
+				'X-Line-Access': result.authToken,
 			})
 			self.authToken = result.authToken
 			self.cert = result.certificate
-			if path is not None:
-				with open(path, "a") as fp:
-					text = "\n{}".format(self.cert)
-					fp.write(text)
 			self.url(config.MAIN_PATH)
 		elif result.type == 1:
 			self.authToken = result.authToken
 			self.cert = result.certificate
 			self.updateHeaders({
-				'x-line-access': result.authToken
+				'X-Line-Access': result.authToken
 			})
 		else:
 			logs.critical('Login failed. got result type `%s`' % (result.type))
+		if path is not None:
+			with open(path, "a") as fp:
+				text = "\n{}".format(self.cert)
+				fp.write(text)
+		elif self.token_db is not None and name is not None:
+			if not self._validate_col({'name': name, 'mail': mail}):
+				if cert is None:
+					self.token_db.auth_col.insert_one({
+						'mail': mail,
+						'name': name,
+						'cert': self.cert
+					})
+			else:
+				r = self.token_db.auth_col.find_one({'name': name,'mail': mail})
+				if 'cert' not in r.keys():
+					self.token_db.auth_col.update_one({
+						'name': name,
+						'mail': mail
+					}, {'$set': {'cert': self.cert}})
 		await self.afterLogin()
 	
 	async def loginWithAuthToken(self, authToken, path=None):
-		if path:
-			with open(path, "w") as fp:
-				fp.write("auth > {}".format(authToken))
 		self.url(config.MAIN_PATH)
 		self.updateHeaders({
-			'x-line-access': authToken
+			'X-Line-Access': authToken
 		})
 		self.authToken = authToken
 		await self.afterLogin()
@@ -237,6 +310,7 @@ class Auth(Connection):
 		self.profile = await self.call('getProfile')
 		self.last_rev = await self.call('getLastOpRevision')
 		self.settings = await self.call('getSettings')
+		self.groups_ids = await self.call('getGroupIdsJoined')
 		self.authToken = self.authToken
 		
 		for remoteFunc in self.afterLoginRemote:

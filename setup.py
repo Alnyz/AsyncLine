@@ -17,7 +17,7 @@ install_requires = [
 
 setup(
 	name='AsyncLine',
-	version='1.5.8.7',
+	version='1.5.8.8',
 	long_description=long_description,
 	long_description_content_type="text/markdown",
 	description='LINE Unofficial Python Library with Asyncio support and C++ Binding',
@@ -28,6 +28,9 @@ setup(
 	download_url="https://github.com/dyseo/AsyncLine/releases/latest",
 	license='MIT',
 	install_requires=install_requires,
+	extras_require={
+		'uvloop': ['uvloop==0.13.0']
+	},
 	classifiers=[
         "Development Status :: 4 - Beta",
         "Programming Language :: Python",
