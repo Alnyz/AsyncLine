@@ -13,6 +13,7 @@ install_requires = [
 	'aiohttp',
 	'aiostomp',
 	'asyncio-nats-client'
+	'pymongo'
 ]
 
 setup(
