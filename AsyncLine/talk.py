@@ -887,7 +887,7 @@ class Talk(Connection):
 		self._unsendMessageReq += 1
 		return bool(await self.call("unsendMessage", self._unsendMessageReq, message_id))
 	
-	async def getMidWithTag(self, message: Message) -> list:
+	def getMidWithTag(self, message: Message) -> list:
 		"""
 		Use this method to get mid of user using Mention
 		
@@ -895,9 +895,8 @@ class Talk(Connection):
 			message: <class 'AsyncLine.lib.Gen.ttypes.Message'>
 			
 			e.g
-			async def _(op):
-				message = op.message
-				await cl.getMidWithTag(message)
+			async def _(message):
+				cl.talk.getMidWithTag(message)
 				
 		Return:
 			<class 'list'> of mid user
@@ -937,7 +936,7 @@ class Talk(Connection):
 			path = await self.cl.download_fileUrl(url)
 			
 		objectId = (await self.sendMessage(to, text=None, contentType = 3)).id
-		return self.cl.uploadObjTalk(path=path, types='audio', remove_path=remove_path, objId=objectId)
+		return await self.cl.uploadObjTalk(path=path, types='audio', remove_path=remove_path, objId=objectId)
 		
 	async def sendImage(self,
 						to: str,
