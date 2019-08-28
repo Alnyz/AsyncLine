@@ -51,7 +51,7 @@ class Liff(Connection):
 			"X-Line-Access": self.authToken
 		})
 		
-	def allowLiff(self):
+	def allowLiff(self, channel_id):
 		#This method for automitacally allow Liff App
 		#Credit: @Ryn
 		url = 'https://access.line.me/dialog/api/permissions'
@@ -62,37 +62,33 @@ class Liff(Connection):
 		headers = {
 			'X-Line-Access': self.authToken.strip(),
 			'X-Line-Application': self.auth.LA,
-			'X-Line-ChannelId': '1603968955',
+			'X-Line-ChannelId': channel_id,
 			'Content-Type': 'application/json'
 		}
 		requests.post(url, json=data, headers=headers)
 		
-	async def issueLiffView(self, to: str):
-		self.allowLiff()
+	async def issueLiffView(self, to: str, liff_id: str):
+		self.allowLiff(liff_id.split('-')[0])
 		context = LiffChatContext(to)
 		chat_ctx = LiffContext(chat=context)
-		request = LiffViewRequest("1603968955-ORWb9RdY", chat_ctx)
+		request = LiffViewRequest(liff_id.split('-')[1], chat_ctx)
 		return await self.call("issueLiffView", request)
 	
 	
-	async def sendFlex(self, to=None, data=None, altText=None):
+	async def sendFlex(self, to, data, liff_id):
 		"""
 		Use this method to send Flex or template message
 		
 		Args:
 			to: string from chat id
 			data: HTML data for liff send to chat
-			altText: (str, optional) string will display on chat
+			liff_id: string from your liff authorization id
 		
 		Return:
 			<requests.Response> or True if Response <= 200
 		"""
-		token   = await self.issueLiffView(to)
-		url_    = "line://app/1603968955-ORWb9RdY/?type=text&text={}".format(urllib.parse.quote('Saya Gans'))
+		token   = await self.issueLiffView(to, liff_id)
 		url     = 'https://api.line.me/message/v3/share'
 		headers = {'Content-Type': 'application/json','Authorization': 'Bearer %s' % token.accessToken}
-		altText = altText if altText else '%s sent a messages' % self.profile.displayName
-		data    = data if data else {"type": "bubble","body": {"type": "box","layout": "vertical","contents": [{"type": "text","align": "center","color": "#00FFF3","text": "Yeay my first liff!","wrap": True,"action": {"type": "uri","uri": url}}]}}
-		data    = {'messages': [{'type': 'flex','altText': altText,'contents': data}]}
 		res     = requests.post(url, headers=headers, data=json.dumps(data))
 		return res
