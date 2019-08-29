@@ -4,25 +4,10 @@ from . import config
 from . import models
 from .filters import Filter
 from .connections import Connection
-from concurrent.futures import ThreadPoolExecutor
-from inspect import *
-from functools import partial
-from .lib.Gen.ttypes import *
 from thrift.transport.TTransport import TTransportException
+from .lib.Gen.ttypes import *
+from inspect import *
 
-class Handler:
-    """
-    Class for (next step|reply) handlers
-    """
-
-    def __init__(self, callback, *args, **kwargs):
-        self.callback = callback
-        self.args = args
-        self.kwargs = kwargs
-
-    def __getitem__(self, item):
-        return getattr(self, item)
-        
 class Poll(Connection):
 	def __init__(self, client_name, loop=None):
 		super().__init__(config.POLLING_PATH)
@@ -36,6 +21,7 @@ class Poll(Connection):
 		self.loop = loop if loop else asyncio.get_event_loop()
 		self.op_handler = {}
 		self.convers_handler = {}
+		self.fetch_event = asyncio.Event(loop=self.loop)
 		if client_name in ['android', 'android2']:
 			self.fetch = self.fetchOps
 		else:
@@ -68,12 +54,6 @@ class Poll(Connection):
 	def streams(self):
 		self.loop.run_until_complete(self.run_fetch())
 	
-	async def conversation(self, uid, callback, *args, **kws):
-		if uid in self.convers_handler.keys():
-			self.convers_handler[uid].append(Handler(callback, *args, *kws))
-		else:
-			self.convers_handler[uid] = [Handler(callback, *args, **kws)]
-				
 	async def fetchOps(self, localRev, count=10):
 		return await self.call('fetchOps', localRev, count, 0, 0)
 		
@@ -88,9 +68,9 @@ class Poll(Connection):
 		
 	async def setRevision(self, revision):
 		self.revision = max(revision, self.revision)
-		
+	
 	async def run_fetch(self, limit=1):
-		while True:
+		while not self.fetch_event.is_set():
 			try:
 				ops = await self.fetch(self.revision, limit)
 				for op in ops:
@@ -107,26 +87,16 @@ class Poll(Connection):
 											await self.execute(k, op)
 							else:
 								continue
-					if op.type in [25, 26]:
-						i = 0
-						cid = op.message.from_
-						executed = False
-						if cid in self.convers_handler.keys():
-							handlers = self.convers_handler.pop(cid, None)
-							if handlers:
-								for handler in handlers:
-									await self.execute(handler["callback"], op.message, *handler["args"], **handler["kwargs"])
-								ops.pop(i)
-								executed = True
-						if not executed:
-							i += 1
+								self.fetch_event.set()
 			except EOFError:
 				continue
 			except TTransportException:
+				self.fetch_event.clear()
 				break
 			except KeyboardInterrupt:
 				raise
 			except ShouldSyncException:
+				self.fetch_event.clear()
 				pass
 			except Exception:
 				print(traceback.format_exc())

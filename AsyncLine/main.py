@@ -23,8 +23,6 @@ import time
 import json
 import tempfile
 import shutil
-from ffmpy import FFmpeg
-
 logs = log.LOGGER
 
 def callback(*args, **kws):

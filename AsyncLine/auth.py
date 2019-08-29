@@ -324,6 +324,6 @@ class Auth(Connection):
 				'cert': getattr(self, 'cert', None),
 				'app_header': (self.LA, self.UA)
 			})
-	
+
 	async def logout(self):
 		await self.call("logoutZ")
