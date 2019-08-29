@@ -69,8 +69,8 @@ class Talk(Connection):
 		return await self.call("getUserTicket")
 		
 	async def generateUserTicket(self,
-										expirationTime: int = 100,
-										maxUseCount: int = 100) -> Ticket:
+								expirationTime: int = 100,
+								maxUseCount: int = 100) -> Ticket:
 		"""
 		Use this method for genereate your Ticket.
 		
@@ -369,16 +369,16 @@ class Talk(Connection):
 		return await self.call("removeChatRoomAnnouncement", 0, chat_id, announceSeq)
 		
 	async def createChatRoomAnnouncement(self,
-											message: Message,
-											text: str,
-											thumbnail=None,
-											link = None) -> ChatRoomAnnouncement:
+										message: Message,
+										text: str,
+										thumbnail=None,
+										link = None) -> ChatRoomAnnouncement:
 		content = ChatRoomAnnouncementContents(
 								displayFields = 11,
 								text = text,
 								link =link if link else  "line://nv/chatMsg?chatId=%s&messageId=%s" % (message.to, message.id),
 								thumbnail = thumbnail
-							)
+								)
 		return await self.call("createChatRoomAnnouncement", 1, message.to, 0, content)
 		
 	async def getRecentMessages(self, messageBoxId, messagesCount):
@@ -700,13 +700,13 @@ class Talk(Connection):
 		return await self.call("leaveRoom", 0, room_id)
 	
 	async def sendMention(self,
-								chat_id: str,
-								mids: list = [],
-								separator: str = "\n",
-								first_text: str = None,
-								end_text: str = None,
-								enum: bool = False,
-								pretty: bool = True):
+						chat_id: str,
+						mids: list = [],
+						separator: str = "\n",
+						first_text: str = None,
+						end_text: str = None,
+						enum: bool = False,
+						pretty: bool = True):
 		"""
 		Use this method to Send Mention to all or some user.
 		
@@ -757,13 +757,13 @@ class Talk(Connection):
 			text = ""
 	
 	async def sendLocation(self,
-						chat_id: str,
-						address: str,
-						latitude: float,
-						longitude: float,
-						phone: str = None,
-						title: str = None
-					) -> Union[str, Message]:
+							chat_id: str,
+							address: str,
+							latitude: float,
+							longitude: float,
+							phone: str = None,
+							title: str = None
+						) -> Union[str, Message]:
 		"""
 		Use this method to sending a Location
 		
@@ -1017,10 +1017,10 @@ class Talk(Connection):
 		return await self.cl.uploadObjTalk(to=to, path=path, types='gif', remove_path=remove_path)
 	
 	async def sendFile(self,
-						to: str,
-						path: str = None,
-						file_name: str = None,
-						remove_path=False):
+					to: str,
+					path: str = None,
+					file_name: str = None,
+					remove_path=False):
 		"""
 		Use this method to send File message
 		important if args url is given, it cannot use the path
@@ -1047,14 +1047,14 @@ class Talk(Connection):
 		return await self.cl.call('fetchOperations', localRev, count)
 		
 	async def createQrcodeBase64Image(self, url: str,
-											characterSet: str = "hey",
-											imageSize: int = 10,
-											x: int = 5, y: int = 5,
-											width: int = 100, height: int = 100
-										):
+									characterSet: str = "hey",
+									imageSize: int = 10,
+									x: int = 5, y: int = 5,
+									width: int = 100, height: int = 100
+								):
 		return await self.call("createQrcodeBase64Image", url=url,
-										characterSet=characterSet,
-										imageSize=imageSize,
-										x=x, y=y,
-										width=width, height=height
-									)
+											characterSet=characterSet,
+											imageSize=imageSize,
+											x=x, y=y,
+											width=width, height=height
+										)

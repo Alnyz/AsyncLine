@@ -318,6 +318,7 @@ class Auth(Connection):
 				'profile': self.profile,
 				'settings': self.settings,
 				'rev': self.last_rev,
+				'groups_ids': self.groups_ids,
 				'mid': self.profile.mid,
 				'authToken': self.authToken,
 				'cert': getattr(self, 'cert', None),
