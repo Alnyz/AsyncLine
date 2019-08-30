@@ -8,6 +8,14 @@ from thrift.transport.TTransport import TTransportException
 from .lib.Gen.ttypes import *
 from inspect import *
 
+class Handler:
+	def __init__(self, callback, done=False):
+		self.callback = callback
+		self.done = done
+		
+	def __getitem__(self, item):
+		return getattr(self, item)
+		
 class Poll(Connection):
 	def __init__(self, client_name, loop=None):
 		super().__init__(config.POLLING_PATH)
@@ -54,6 +62,14 @@ class Poll(Connection):
 	def streams(self):
 		self.loop.run_until_complete(self.run_fetch())
 	
+	def conversation(self, msg, callback, done=False):
+		cid = msg.from_
+		msg.callback = callback
+		if id in self.convers_handler.keys():
+			self.convers_handler[cid].append(Handler(msg.callback, done))
+		else:
+			self.convers_handler[cid] = [Handler(msg.callback, done)]
+			
 	async def fetchOps(self, localRev, count=10):
 		return await self.call('fetchOps', localRev, count, 0, 0)
 		
@@ -88,6 +104,23 @@ class Poll(Connection):
 							else:
 								continue
 								self.fetch_event.set()
+					if self.convers_handler != {} and (op.type == 26 and op.message.toType == 0):
+						cid = op.message.from_
+						if cid in self.convers_handler.keys():
+							handlers = self.convers_handler.get(cid, None)
+							if handlers:
+								for handler in handlers:
+									new_fetch = ops
+									default_callback = handler.callback
+									for fetch in new_fetch:
+										if fetch.message.from_ in self.convers_handler.keys() and not fetch.message.command:
+											if not handler.done:
+												await self.execute(default_callback, fetch.message)
+											else:
+												await self.execute(default_callback, fetch.message)
+												self.convers_handler.pop(fetch.message.from_)
+										else:
+											continue
 			except EOFError:
 				continue
 			except TTransportException:

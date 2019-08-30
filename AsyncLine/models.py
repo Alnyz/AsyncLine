@@ -16,8 +16,8 @@ class ApplicationHeader(object):
 			'LA': "IOSIPAD\t8.14.2\t{}\t7.0.0".format(config.LOGIN_DEVICE_NAME),
 		},
 		'ios2': {
-			'UA': "LINE/9.13.1",
-			'LA': "IOS\t9.13.1\t{}\t8.2.0".format(config.LOGIN_DEVICE_NAME),
+			'UA': "Line/8.2.0",
+			'LA': "IOS\t8.2.0\t{}\t8.2.0".format(config.LOGIN_DEVICE_NAME),
 		},
 		'desktop': {
 			'UA': "DESKTOP:MAC:10.9.4-MAVERICKS-x64(5.1.2)", #"DESKTOP:MAC:10.10.2-YOSEMITE-x64(4.5.0)",

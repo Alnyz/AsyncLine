@@ -24,9 +24,6 @@ import json
 import tempfile
 import shutil
 logs = log.LOGGER
-
-def callback(*args, **kws):
-	print(*args, **kws)
 	
 class LineNext(object):
 	def __init__(self, client_name, storage=None):
@@ -169,7 +166,7 @@ class LineNext(object):
 					if chunk:
 						self.save_file(path, chunk)
 			else:
-				save_file(path, r.raw)
+				self.save_file(path, r.raw)
 			if return_as == "path":
 				return path
 			elif return_as == "bool":

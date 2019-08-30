@@ -191,7 +191,7 @@ class Auth(Connection):
 				
 	async def loginWithQrcode(self, path=None):
 		self.url(config.MAIN_PATH)
-		qr = await self.call('getAuthQrcode', True, config.LOGIN_DEVICE_NAME, "")
+		qr = await self.call('getAuthQrcode', True, self.LA.split('\t')[0], "")
 		print("line://au/q/"+qr.verifier)
 		r = self.waitForPhoneConfirm(qr.verifier)
 		vr = r.json()['result']['verifier']
@@ -203,7 +203,7 @@ class Auth(Connection):
 			None,
 			True,
 			config.LOGIN_LOCATION,
-			config.LOGIN_DEVICE_NAME,
+			self.LA.split('\t')[0],
 			None,
 			vr,
 			None,
@@ -239,7 +239,7 @@ class Auth(Connection):
 			crypt,
 			True,
 			config.LOGIN_LOCATION,
-			config.LOGIN_DEVICE_NAME,
+			self.LA.split('\t')[0],
 			cert,
 			None,
 			crypt.encode() if type(crypt) == str else crypt, #none, #crypt
@@ -255,7 +255,7 @@ class Auth(Connection):
 				IdentityProvider.LINE,
 				None, None, True,
 				config.LOGIN_LOCATION,
-				config.LOGIN_DEVICE_NAME,
+				self.LA.split('\t')[0],
 				cert, r.json()['result']['verifier'],
 				None, 
 				2
