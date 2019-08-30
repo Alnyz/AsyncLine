@@ -2,7 +2,7 @@ from .lib.Gen.ttypes import *
 from .lib.Gen.liff import FLiffServiceClient as LiffClient
 from .lib.Gen.liff.ttypes import *
 from .connections import Connection
-from .main import LineNext
+from .main import Client
 from .proto import *
 from .filters import *
 from .database import *

@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 import asyncio
 from AsyncLine import *
 
-cl = LineNext('ios')
+cl = Client('ios')
 cl.login(name="syncline")
 
 @cl.poll.hooks(type=25, filters=Filters.text)

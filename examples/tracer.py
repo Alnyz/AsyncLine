@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 import asyncio
 from AsyncLine import *
 
-cl = LineNext('ios')
+cl = Client('ios')
 """
 LineNext(*args)
 args:

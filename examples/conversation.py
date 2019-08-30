@@ -1,7 +1,7 @@
 from AsyncLine import *
 import asyncio
 
-cl = LineNext('ios')
+cl = Client('ios')
 cl.login(name="mybot", qr=True)
 
 data = {

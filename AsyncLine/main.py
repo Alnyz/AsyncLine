@@ -25,7 +25,7 @@ import tempfile
 import shutil
 logs = log.LOGGER
 	
-class LineNext(object):
+class Client(object):
 	def __init__(self, client_name, storage=None):
 		self.storage = storage
 		self.auth = Auth(client_name, storage)

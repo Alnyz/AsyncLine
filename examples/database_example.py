@@ -9,7 +9,7 @@ Ars Storage:
 	db_name: (str | None, optional), create first database for save Collection
 	host: (str, Require), valid url from mongodb apps
 """
-cl = LineNext("ios", storage=db)
+cl = Client("ios", storage=db)
 cl.login(name="syncline")
 
 @cl.poll.hooks(type=25, filters=Filters.command("yo") & Filters.mention)
