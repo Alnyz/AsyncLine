@@ -71,7 +71,7 @@ class Liff(Connection):
 		self.allowLiff(liff_id.split('-')[0])
 		context = LiffChatContext(to)
 		chat_ctx = LiffContext(chat=context)
-		request = LiffViewRequest(liff_id.split('-')[1], chat_ctx)
+		request = LiffViewRequest(liff_id, chat_ctx)
 		return await self.call("issueLiffView", request)
 	
 	
