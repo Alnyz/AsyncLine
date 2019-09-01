@@ -118,7 +118,7 @@ class Filters:
 	#Grouping
 	group = create("Group", lambda _,m: bool(m.toType == 2))
 	private = create("Private", lambda _,m: bool(m.toType == 0))
-	both = create("Both", lambda _,m: bool(m.toType in [0, 2, 1]))
+	room = create("Room", lambda _,m: bool(m.toType == 1))
 	
 	#Event
 	flex = create("Flex", lambda _,m: bool(m.contentType == 22 and "FLEX_JSON" in m.contentMetadata.keys()))
