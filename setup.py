@@ -31,12 +31,12 @@ setup(
 	description='LINE Unofficial Python Library with Asyncio support and C++ Binding',
 	author="Anysz, Doodspav, Dyseo",
 	author_email="katro.coplax@gmail.com",
-	packages=find_packages(exclude("examples")),
+	packages=find_packages(exclude=("examples")),
 	url="https://github.com/dyseo/AsyncLine",
 	download_url="https://github.com/dyseo/AsyncLine/releases/latest",
 	license='MIT',
 	requires_python='>=3.7',
-	install_requires=install_requires,
+	install_requires=install_requires(),
 	extras_require={
 		'uvloop': ['uvloop==0.13.0']
 	},
