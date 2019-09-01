@@ -1,8 +1,13 @@
-
 from setuptools import setup, find_packages
+import sys
 
 with open("README.md", encoding="utf-8") as f:
 	long_description = f.read()
+
+MINIMAL_PY_VERSION = (3, 7)
+
+if sys.version_info < MINIMAL_PY_VERSION:
+    raise RuntimeError('asyncline works only with Python {}+'.format('.'.join(map(str, MINIMAL_PY_VERSION))))
 
 install_requires = [
 	'frugal',
@@ -24,10 +29,11 @@ setup(
 	description='LINE Unofficial Python Library with Asyncio support and C++ Binding',
 	author="Anysz, Doodspav, Dyseo",
 	author_email="katro.coplax@gmail.com",
-	packages=find_packages(),
+	packages=find_packages(exclude("examples", "examples")),
 	url="https://github.com/dyseo/AsyncLine",
 	download_url="https://github.com/dyseo/AsyncLine/releases/latest",
 	license='MIT',
+	requires_python='>=3.7',
 	install_requires=install_requires,
 	extras_require={
 		'uvloop': ['uvloop==0.13.0']
@@ -37,12 +43,11 @@ setup(
         "Programming Language :: Python",
         "Natural Language :: English",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3",
+	"Framework :: AsyncIO",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
-        "Topic :: Utilities",
         "Topic :: Internet",
-        "Topic :: Multimedia :: Video",
+        "Topic :: Software Development :: Libraries :: Application Frameworks"
         "Topic :: Software Development :: Libraries :: Python Modules"
     ]
 )
