@@ -9,8 +9,10 @@ from .database import *
 from .timeline import *
 from .log import *
 from .shop import *
+from .poll import *
 from .auth import *
 from .models import *
+from .handler import *
 from .call import Call
 __author__ = "Dyseo"
 __from_source__ = "Anysz"

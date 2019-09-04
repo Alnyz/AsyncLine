@@ -7,6 +7,7 @@ from .connections import Connection
 from thrift.transport.TTransport import TTransportException
 from .lib.Gen.ttypes import *
 from inspect import *
+from types import LambdaType
 
 class Handler:
 	def __init__(self, callback, done=False):
@@ -28,6 +29,7 @@ class Poll(Connection):
 		self.revision = 0
 		self.loop = loop if loop else asyncio.get_event_loop()
 		self.op_handler = {}
+		self.plug_handler = {}
 		self.convers_handler = {}
 		self.fetch_event = asyncio.Event(loop=self.loop)
 		if client_name in ['android', 'android2']:
@@ -104,6 +106,21 @@ class Poll(Connection):
 							else:
 								continue
 								self.fetch_event.set()
+					if self.plug_handler:
+						for handle, hFuncs in self.plug_handler.items():
+							if handle == op.type:
+								for hFunc in hFuncs:
+									for k, v in hFunc.items():
+										if hFunc[k][0] is not None and isinstance(hFunc[k][0], Filter):
+											if hFunc[k][0](op.message):
+												await self.execute(k, hFunc[k][1], op.message)
+										elif isinstance(hFunc[k][0], LambdaType):
+											if hFunc[k][0](hFunc[k][1], op if op.type not in [25, 26] else op.message):
+												await self.execute(k, hFunc[k][1], 
+													op if op.type not in [25,26] \
+													else op.message)
+										elif hFunc[k][0] is None:
+											await self.execute(k, hFunc[k][1], op)
 					if self.convers_handler != {} and (op.type == 26 and op.message.toType == 0):
 						cid = op.message.from_
 						if cid in self.convers_handler.keys():

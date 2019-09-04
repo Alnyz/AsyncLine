@@ -942,7 +942,8 @@ class Talk(Connection):
 						to: str,
 						path: str = None,
 						url: str = None,
-						remove_path: bool = False) -> bool:
+						remove_path: bool = False,
+						chunked: bool = False) -> bool:
 		"""
 		Use this method to send Image message
 		important if args url is given, it cannot use the path
@@ -959,7 +960,7 @@ class Talk(Connection):
 		if path is not None and url is not None:
 			raise Exception("if args url is given, it cannot use the path")
 		if url is not None and path is None:
-			path = await self.cl.download_fileUrl(url)
+			path = await self.cl.download_fileUrl(url, chunked=chunked)
 				
 		objectId = (await self.sendMessage(to, text=None, contentType=1)).id
 		return await self.cl.uploadObjTalk(path=path, types='image', remove_path=remove_path, objId=objectId)

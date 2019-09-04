@@ -9,6 +9,7 @@ from .call import Call
 from .liff import Liff
 from .timeline import Timeline
 from .shop import Shop
+from .handler import Methods, Handler, BaseClient
 from . import config
 from . import log
 from .lib.Gen.ttypes import *
@@ -23,12 +24,17 @@ import time
 import json
 import tempfile
 import shutil
+from importlib import import_module
+from pathlib import Path
+
 logs = log.LOGGER
 	
-class Client(object):
-	def __init__(self, client_name, storage=None):
+class Client(Methods, BaseClient):
+	def __init__(self, client_name, storage=None, plugins=None):
+		super().__init__()
 		self.storage = storage
-		self.auth = Auth(client_name, storage)
+		self.client_name = client_name
+		self.auth = Auth(self.client_name, storage)
 		self.auth.remote(self.afterLogin)
 		self.budy = Buddy(self.auth)
 		self.auth.remote(self.budy.afterLogin)
@@ -38,7 +44,7 @@ class Client(object):
 		self.auth.remote(self.ch.afterLogin)
 		self.call = Call(self.auth)
 		self.auth.remote(self.call.afterLogin)
-		self.poll = Poll(client_name)
+		self.poll = Poll(self.client_name)
 		self.auth.remote(self.poll.afterLogin)
 		self.liff = Liff(self.auth)
 		self.auth.remote(self.liff.afterLogin)
@@ -48,7 +54,8 @@ class Client(object):
 		self.auth.remote(self.tl.afterLogin)
 		self._session = requests.Session()
 		self.timelineHeaders = {}
-
+		self.plugins = plugins
+	
 	def __validate(self, name, token, mail, passwd, cert, qr):
 		f = SyncAsync(self.auth.createLoginSession(name, token, mail, passwd, cert, qr)).run()
 		if not f:
@@ -66,7 +73,43 @@ class Client(object):
 			except:
 				pass
 	
+	def add_handler(self, type, callback, filters):
+		if type not in self.poll.plug_handler.keys():
+			self.poll.plug_handler[type] = [{callback: [filters, self]}]
+		else:
+			self.poll.plug_handler[type].append({
+				callback: [filters, self]
+			})
+			
+	def load_plugins(self):
+		if self.plugins is not None:
+			count = 0
+			for path in Path(self.plugins).rglob("*.py"):
+				file_path = os.path.splitext(str(path))[0]
+				import_path = []
+				
+				while file_path:
+					file_path, tail = os.path.split(file_path)
+					import_path.insert(0, tail)
+					
+				import_path = ".".join(import_path)
+				module = import_module(import_path)
+				for name in dir(module):
+					try:
+						handler, type = getattr(module, name)
+						if isinstance(handler, Handler) and isinstance(type, int):
+							self.add_handler(type, handler.callback, handler.filters)
+							count += 1
+					except:
+						pass
+			if count > 0:
+				logs.info('Successfully loaded {} plugins from {}'.format(
+					count, self.plugins))
+			else:
+				logs.error('Cannot load plugins')		
+				
 	def login(self, name=None, token=None, mail=None, passwd=None, cert=None, qr=False):
+		self.load_plugins()
 		self.__validate(name, token, mail, passwd, cert, qr)
 		
 	def save_file(self, path, raw):
@@ -115,7 +158,7 @@ class Client(object):
 		r = await self.get_content(url, headers=headers)
 		if r.ok:
 			if chunked:
-				for chunk in r.iter_content(chunk_size=16*1024*1024):
+				for chunk in r.iter_content(chunk_size=8*1024*1024):
 					if chunk:
 						self.save_file(path, chunk)
 			else:
@@ -162,7 +205,7 @@ class Client(object):
 		r = await self.get_content(uri)
 		if r.ok:
 			if chunked:
-				for chunk in r.iter_content(chunk_size=16*1024*1024):
+				for chunk in r.iter_content(chunk_size=10*1024*1024):
 					if chunk:
 						self.save_file(path, chunk)
 			else:
