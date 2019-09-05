@@ -31,7 +31,7 @@ class Timeline(object):
 	async def getFeed(self, postLimit=10, commentLimit=1, likeLimit=1, order='TIME'):
 		await self.updateToken()
 		params = {'postLimit': postLimit, 'commentLimit': commentLimit, 'likeLimit': likeLimit, 'order': order}
-		url = TIMELINE_API+'/v27/feed/list.json?%s' % urllib.parse.urlencode(params)
+		url = TIMELINE_API+'/v45/feed/list.json?%s' % urllib.parse.urlencode(params)
 		r = await self.client.get_content(url, headers=self.client.timelineHeaders)
 		if r.ok:
 			return r.json()
@@ -42,7 +42,7 @@ class Timeline(object):
 		if mid is None:
 			mid = self.profile.mid
 		params = {'homeId': mid, 'postLimit': postLimit, 'commentLimit': commentLimit, 'likeLimit': likeLimit, 'sourceType': 'LINE_PROFILE_COVER'}
-		url = TIMELINE_API+'/v27/post/list.json?%s' % urllib.parse.urlencode(params)
+		url = TIMELINE_API+'/v45/post/list.json?%s' % urllib.parse.urlencode(params)
 		r = await self.client.get_content(url, headers=self.client.timelineHeaders)
 		if r.ok:
 			return r.json()

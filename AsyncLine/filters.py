@@ -1,5 +1,4 @@
 import re
-from .lib.Gen.f_LineService import Operation
 
 class Filter:
     #source pyrogram.Filters

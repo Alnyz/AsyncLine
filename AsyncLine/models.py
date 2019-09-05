@@ -3,11 +3,11 @@ import asyncio, platform
 from . import config
 class SyncAsync(object):
 	def __init__(self, _coroutine):
-		self.loop = asyncio.get_event_loop()
+		self.loop = asyncio.get_event_loop().run_until_complete
 		self._coroutine = _coroutine
 		
 	def run(self):
-		return self.loop.run_until_complete(self._coroutine)
+		return self.loop(self._coroutine)
 
 class ApplicationHeader(object):
 	MAP = {
@@ -127,13 +127,14 @@ class ApplicationHeader(object):
 			'LA': 'CHANNELGW\t8.2.4\tiPhone\tOS\t1',
 		},
 	}
-	def __init__(self, client_name, custom='', useragent="Line/8.2.4 iPad4,1 10.0.2"):
+	def __init__(self, client_name, line_app='', useragent="Line/8.2.4 iPad4,1 10.0.2"):
+		
 		if client_name == 'custom':
-			self.LA = custom
+			self.LA = line_app
 			self.UA = useragent
 		else:
 			sets = self.MAP.get(client_name, None)
-			if sets == None:
+			if not sets:
 				raise Exception('Client not in the list [ %s ] ' % (', '.join(list(self.MAP.keys()) )) )
 			else:
 				self.LA, self.UA = sets['LA'], sets['UA']

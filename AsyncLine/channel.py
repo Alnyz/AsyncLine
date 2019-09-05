@@ -7,8 +7,8 @@ class Channel(Connection):
 		super().__init__("/CH4")
 		self.auth = auth
 		self.updateHeaders({
-			'user-agent': self.auth.UA,
-			'x-line-application': self.auth.LA,
+			'User-Agent': self.auth.UA,
+			'X-Line-Application': self.auth.LA,
 		})
 		
 	def afterLogin(self, *args, **kws):

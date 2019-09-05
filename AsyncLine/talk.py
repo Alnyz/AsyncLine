@@ -4,15 +4,16 @@ from . import config as Config
 from .lib.Gen.ttypes import *
 from typing import Union, Any, List
 from .connections import Connection
+from random import randint
 import asyncio, json
 	
 class Talk(Connection):
 	_unsendMessageReq = 0
 
-	def __init__(self, client, auth):
+	def __init__(self, auth):
 		super().__init__("/S4")
 		self.auth = auth
-		self.cl = client
+		self.cl = auth.cli
 		self.updateHeaders({
 			'user-agent': self.auth.UA,
 			'x-line-application': self.auth.LA,
@@ -699,6 +700,12 @@ class Talk(Connection):
 		"""
 		return await self.call("leaveRoom", 0, room_id)
 	
+	async def sendChatRemoved(self, mid, message_id):
+		return await self.call("sendChatRemoved", 0, mid, message_id, randint(0, 10))
+	
+	async def sendChatChecked(self, mid, message_id):
+		return await self.call('sendChatChecked', 0, mid, message_id, randint(0, 10))
+		
 	async def sendMention(self,
 						chat_id: str,
 						mids: list = [],
@@ -1047,15 +1054,9 @@ class Talk(Connection):
 	async def fetchOperations(self, localRev, count=10):
 		return await self.cl.call('fetchOperations', localRev, count)
 		
-	async def createQrcodeBase64Image(self, url: str,
-									characterSet: str = "hey",
-									imageSize: int = 10,
-									x: int = 5, y: int = 5,
-									width: int = 100, height: int = 100
-								):
-		return await self.call("createQrcodeBase64Image", url=url,
-											characterSet=characterSet,
-											imageSize=imageSize,
-											x=x, y=y,
-											width=width, height=height
-										)
+	async def getReadMessageOps(self, chat_id):
+		return await self.call('getReadMessageOps', chat_id)
+	
+	async def removeMessage(self, message_id):
+		
+		return await self.call('removeMessage', message_id)

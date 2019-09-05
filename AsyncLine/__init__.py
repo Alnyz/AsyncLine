@@ -8,6 +8,7 @@ from .filters import *
 from .database import *
 from .timeline import *
 from .log import *
+from .talk import *
 from .shop import *
 from .poll import *
 from .auth import *

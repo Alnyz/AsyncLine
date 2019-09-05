@@ -18,11 +18,14 @@ class HookMessage(BaseClient):
     def hooks(self=None, filters=None, type: int = 0):
         def decorator(func):
             if isinstance(self, AsyncLine.Client):
-            	self.add_handler(MessageHandler(func, filters), type)
+            	self.add_handler(type, MessageHandler(func, filters).callback, filters)
             elif isinstance(self, Filter) or self is None:
             	func.line_plugin = (
             		MessageHandler(func, filters), type)
-            return func.line_plugin
+            try:
+            	return func.line_plugin
+            except AttributeError:
+            	return func
         return decorator
 
 class Methods(HookMessage):

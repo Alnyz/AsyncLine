@@ -6,8 +6,8 @@ class Call(Connection):
 		super().__init__("/V4")
 		self.auth = auth
 		self.updateHeaders({
-			'user-agent': self.auth.UA,
-			'x-line-application': self.auth.LA,
+			'User-Agent': self.auth.UA,
+			'X-Line-Application': self.auth.LA,
 		})
 		
 	def afterLogin(self, *args, **kws):

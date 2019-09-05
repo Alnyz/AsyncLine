@@ -15,6 +15,8 @@ from . import log
 from .lib.Gen.ttypes import *
 from random import randint
 from urllib3.response import HTTPResponse
+from importlib import import_module
+from pathlib import Path
 import urllib
 import os
 import base64
@@ -24,34 +26,33 @@ import time
 import json
 import tempfile
 import shutil
-from importlib import import_module
-from pathlib import Path
 
 logs = log.LOGGER
 	
 class Client(Methods, BaseClient):
-	def __init__(self, client_name, storage=None, plugins=None):
+	def __init__(self,
+			client_name=None,
+			storage=None,
+			plugins=None,
+			UA=None,
+			LA=None):
 		super().__init__()
 		self.storage = storage
-		self.client_name = client_name
-		self.auth = Auth(self.client_name, storage)
-		self.auth.remote(self.afterLogin)
+		self.client_name = client_name if client_name else "custom"
+		self.LA, self.UA = ApplicationHeader(self.client_name, LA, UA).get()
+		self.auth = Auth(self, storage)
 		self.budy = Buddy(self.auth)
-		self.auth.remote(self.budy.afterLogin)
-		self.talk = Talk(self, self.auth)
-		self.auth.remote(self.talk.afterLogin)
+		self.talk = Talk(self.auth)
 		self.ch = Channel(self.auth)
-		self.auth.remote(self.ch.afterLogin)
 		self.call = Call(self.auth)
-		self.auth.remote(self.call.afterLogin)
-		self.poll = Poll(self.client_name)
-		self.auth.remote(self.poll.afterLogin)
+		self.poll = Poll(self)
 		self.liff = Liff(self.auth)
-		self.auth.remote(self.liff.afterLogin)
 		self.shop = Shop(self.auth)
-		self.auth.remote(self.shop.afterLogin)
-		self.tl = Timeline(self)
-		self.auth.remote(self.tl.afterLogin)
+		self.tl = Timeline(self.auth.cli)
+		self.auth.remote(*[
+			self.afterLogin, self.budy.afterLogin, self.talk.afterLogin,
+			self.ch.afterLogin, self.call.afterLogin, self.poll.afterLogin,
+			self.liff.afterLogin, self.shop.afterLogin, self.tl.afterLogin])
 		self._session = requests.Session()
 		self.timelineHeaders = {}
 		self.plugins = plugins
@@ -60,9 +61,10 @@ class Client(Methods, BaseClient):
 		f = SyncAsync(self.auth.createLoginSession(name, token, mail, passwd, cert, qr)).run()
 		if not f:
 			return
+		self.load_plugins()
 		self.headers = {
-				"User-Agent": self.auth.UA,
-				"X-Line-Application": self.auth.LA,
+				"User-Agent": self.UA,
+				"X-Line-Application": self.LA,
 				"X-Line-Access":self.auth.authToken.strip(),
 			}
 		
@@ -80,7 +82,7 @@ class Client(Methods, BaseClient):
 			self.poll.plug_handler[type].append({
 				callback: [filters, self]
 			})
-			
+		
 	def load_plugins(self):
 		if self.plugins is not None:
 			count = 0
@@ -95,6 +97,7 @@ class Client(Methods, BaseClient):
 				import_path = ".".join(import_path)
 				module = import_module(import_path)
 				for name in dir(module):
+					h = getattr(module, name)
 					try:
 						handler, type = getattr(module, name)
 						if isinstance(handler, Handler) and isinstance(type, int):
@@ -109,7 +112,6 @@ class Client(Methods, BaseClient):
 				logs.error('Cannot load plugins')		
 				
 	def login(self, name=None, token=None, mail=None, passwd=None, cert=None, qr=False):
-		self.load_plugins()
 		self.__validate(name, token, mail, passwd, cert, qr)
 		
 	def save_file(self, path, raw):
@@ -146,11 +148,9 @@ class Client(Methods, BaseClient):
 	def generate_tempFile(self, returnAs='path'):
 		assert returnAs in ['file','path'], 'Invalid returnAs value %s' % returnAs	
 		fName, fPath = 'linesync-%s-%i.bin' % (int(time.time()), randint(0, 9)), tempfile.gettempdir()
-		if returnAs == 'file':
-			return fName
-		elif returnAs == 'path':
-			return os.path.join(fPath, fName)
-
+		
+		return fName if returnAs == "file" else os.path.join(fPath, fName)
+		
 	async def download_fileUrl(self, url, path=None, headers=None, return_as = "path", chunked=True):
 		assert return_as in ['path','bool','bin'], 'Invalid returnAs value %' % return_as
 		if not path:
@@ -158,19 +158,14 @@ class Client(Methods, BaseClient):
 		r = await self.get_content(url, headers=headers)
 		if r.ok:
 			if chunked:
-				for chunk in r.iter_content(chunk_size=8*1024*1024):
+				for chunk in r.iter_content(chunk_size=10*1024*1024):
 					if chunk:
 						self.save_file(path, chunk)
 			else:
 				self.save_file(path, r.raw)
-			if return_as == "path":
-				return path
-			if return_as == "bin":
-				return r.raw
-			if return_as == "bool":
-				return True
-			else:
-				logs.warning("args=(return_as), must be <bin or path or bool>, got {}".format(return_as))
+			return path if return_as == "path" \
+				else r.raw if return_as == "bin" \
+				else True if return_as == "bool" else True
 		else:
 			logs.error("Download url failed with code {}".format(r.status_code))
 	
@@ -210,10 +205,9 @@ class Client(Methods, BaseClient):
 						self.save_file(path, chunk)
 			else:
 				self.save_file(path, r.raw)
-			if return_as == "path":
-				return path
-			elif return_as == "bool":
-				return True
+			
+			return path if return_as == "path" \
+				else True if return_as == "bool" else True
 		else:
 			logs.error("Download message content failed returning code %s" % r.status_code)
 		if remove_path:
@@ -227,41 +221,40 @@ class Client(Methods, BaseClient):
 								else 'audio/mp3' if type == "audio" else None
 		if not objId:
 			objId = int(time.time())
-		file = open(path, 'rb').read()
-		params = {
-			'name': '%s' % str(time.time()*1000),
-			'userid': '%s' % self.profile.mid,
-			'oid': '%s' % str(objId),
-			'type': type,
-			'ver': '1.0'
-			}
-		headers = {}
-		headers.update({
-			'Content-Type': contentType,
-			'Content-Length': str(len(file)),
-			'x-obs-params': self.genOBSParams(params,'b64'),
-			**self.timelineHeaders
-		})
+		with open(path, 'rb') as file:
+			params = {
+				'name': '%s' % str(time.time()*1000),
+				'userid': '%s' % self.profile.mid,
+				'oid': '%s' % str(objId),
+				'type': type,
+				'ver': '1.0'
+				}
+			headers = {}
+			headers.update({
+				'Content-Type': contentType,
+				'Content-Length': str(len(file)),
+				'x-obs-params': self.genOBSParams(params,'b64'),
+				**self.timelineHeaders
+			})
 		r = await self.post_content(config.OBS_URL + '/myhome/c/upload.nhn', headers=headers, data=file)
 		if not r.ok:
 			raise Exception('Upload object home failure returning code %s' % r.status_code)
-		if returnAs == 'objId':
-			return objId
-		elif returnAs == 'bool':
-			return True
-            
+		
+		return objId if returnAs == "objId" else True if returnAs =="bool" else True
+		
 	async def uploadObjTalk(self, path, types='image', remove_path=False, objId=None, to=None, name=None):	
 		assert types in ['image','gif','video','audio','file'], "values of types incorrect got %s" % types
-		fdata = {"file": open(path, 'rb')}
+		path = open(path, 'rb')
+		fdata = {"file": path}
 		
 		if types in ["image", "video", "file", "audio"]:
 			headers = None
 			uri = config.OBS_URL + '/talk/m/upload.nhn'
-			data = {'params': self.genOBSParams({'oid': objId,'size': len(open(path, 'rb').read()),'type': types, 'name': name})}
+			data = {'params': self.genOBSParams({'oid': objId,'size': len(path.read()),'type': types, 'name': name})}
 		elif types == "gif":
 			uri = config.OBS_URL + '/r/talk/m/reqseq'
 			fdata = None
-			data = open(path, 'rb').read()
+			data = path.read()
 			params = {
 				'name': str(self.poll.revision - 1) + ".original",
 				'oid': 'reqseq',
@@ -281,12 +274,12 @@ class Client(Methods, BaseClient):
 			})
 		
 		r = await self.post_content(url=uri, data=data, files=fdata, headers=headers)
+		if remove_path:
+			self.delete_file(path)
 		if r.ok:
 			return True
 		else:
 			logs.error("Upload content %s failed returning code %s" % (types, r.status_code))
-		if remove_path:
-			self.delete_file(path)
 	
 	async def updateGroupPicture(self,
 							groupid,
@@ -315,12 +308,12 @@ class Client(Methods, BaseClient):
 		data = {'params': self.genOBSParams({'oid': groupid,'type': 'image'})}
 		uri = config.OBS_URL + '/talk/g/upload.nhn'	
 		r = await self.post_content(url=uri, data=data, files=file)
+		if remove_path:
+			self.delete_file(path)
 		if r.ok:
 			return True
 		else:
 			logs.error("Update group picture failed returning code %s" % r.status_code)
-		if remove_path:
-			self.delete_file(path)
 	
 	async def changeProfile(self,
 						path = None,
@@ -353,12 +346,12 @@ class Client(Methods, BaseClient):
 		data = {'params': self.genOBSParams(params)}
 		uri = config.OBS_URL + end
 		r = await self.post_content(url=uri, data=data, files=files)
+		if remove_path:
+			self.delete_file(path)
 		if r.ok:
 			return True
 		else:
 			logs.error("Update profile failed returning code %s" % r.status_code)
-		if remove_path:
-			self.delete_file(path)
 	
 	async def updateProfileVideoPicture(self,
 							uri_img = None,

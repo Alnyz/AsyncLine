@@ -1,6 +1,7 @@
 from .connections import Connection
 from .lib.Gen.ttypes import *
 from typing import Union, List
+
 class Buddy(Connection):
 	def __init__(self, auth):
 		super().__init__("/BUDDY4")

@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import os,sys,time
-#import uvloop
 import async_timeout, asyncio, aiohttp
 from aiohttp.client import ClientSession
 
@@ -11,10 +9,7 @@ from thrift.transport.TTransport import TTransportException
 from frugal.aio.transport import FTransportBase
 from frugal.context import FContext
 from frugal.aio.transport.http_transport import FHttpTransport
-
 from frugal.exceptions import TTransportExceptionType
-
-#asyncio.set_event_loop_policy(uvloop.EventLoopPolicy()) 
 
 class HttpClient(FHttpTransport):
 	def __init__(self, url, timeout=5000, loop=None):
@@ -35,10 +30,7 @@ class HttpClient(FHttpTransport):
 		payload = payload[4:] 
 		self._payload = payload
 		self._preflight_request_check(payload)
-		tasks = [self._make_request(context, payload) \
-					for _ in range(len([self._url]))]
-		result = await asyncio.gather(*tasks)
-		status, text = result[0]
+		status, text = await self._make_request(context, self._payload)
 		if status == 400: 
 			raise TTransportException(
 				type=400, 
@@ -67,7 +59,7 @@ class HttpClient(FHttpTransport):
 		
 	async def _make_request(self, context:FContext, payload):
 		sem = asyncio.Semaphore(200)
-		conn = aiohttp.TCPConnector(use_dns_cache=False, loop=self.loop, limit=0)
+		conn = aiohttp.TCPConnector(use_dns_cache=True, loop=self.loop, limit=0)
 		async with sem:
 			async with ClientSession(connector=conn) as session:
 				try:
