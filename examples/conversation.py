@@ -9,9 +9,9 @@ data = {
 	"old": None,
 }
 
-@cl.poll.hooks(type=26, filters=Filters.command("start") & Filters.private)
-async def start_conversation(msg):
-	await cl.talk.sendMessage(msg.from_, "Hello stranger, what your name?")
+@cl.hooks(type=26, filters=Filters.command("start") & Filters.private)
+async def start_conversation(client, msg):
+	await client.talk.sendMessage(msg.from_, "Hello stranger, what your name?")
 	"""
 	This method will be trigger conversation.
 	Note: type must be 26 (Receive Message) and use this in private chat
@@ -24,7 +24,7 @@ async def start_conversation(msg):
 			callback = (callable, require), function for next conversation
 			done = (bool, optional), pass True if want this conversation ended
 	"""
-	cl.poll.conversation(msg, callback_name)
+	client.poll.conversation(msg, callback_name)
 
 async def callback_name(msg):
 	data["name"] = msg.text

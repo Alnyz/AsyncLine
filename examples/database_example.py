@@ -10,10 +10,10 @@ Ars Storage:
 	host: (str, Require), valid url from mongodb apps
 """
 cl = Client("ios", storage=db)
-cl.login(name="syncline")
+cl.login(name="syncline", qr=True)
 
-@cl.poll.hooks(type=25, filters=Filters.command("yo") & Filters.mention)
-async def _(msg):
+@cl.hooks(type=25, filters=Filters.command("yo") & Filters.mention)
+async def _(client, msg):
 	mid = await cl.talk.getMidWithTag(msg)
 	data = []
 	for i in mid:
@@ -26,6 +26,6 @@ async def _(msg):
 		})
 	db.add_data(data=data)
 	r = db.find_data(all=True)
-	await cl.talk.sendMessage(msg.to, str(r))
+	await client.talk.sendMessage(msg.to, str(r))
 	
 cl.poll.streams()

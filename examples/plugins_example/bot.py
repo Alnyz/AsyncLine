@@ -7,8 +7,8 @@ Args:
 """
 cl.login(name="sync", qr=True)
 
-@cl.poll.hooks(type=25, filters=Filters.command("hey"))
-async def _hai(msg):
+@cl.hooks(type=25, filters=Filters.command("hey"))
+async def _hai(client, msg):
 	return
 
 
