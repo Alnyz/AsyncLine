@@ -61,8 +61,8 @@ or clone this repository
 from AsyncLine import LineNext
 import asyncio
 
-client = LineNext('ios')
-client.login(name='your session name')
+cli = LineNext('ios')
+cli.login(name='your session name', qr=True)
 
 """
 Args login:
@@ -77,12 +77,12 @@ Args login:
 		e.g client.login(name="sync", qr=True) this needed for next login
 """
 
-@client.poll.hooks(type=26, filters=Filters.command("hello"))
-async def hello_message(msg):
+@cli.hooks(type=26, filters=Filters.command("hello"))
+async def hello_message(client, msg):
 	await client.talk.sendMessage(msg.to, "Heyy!")
 	
 #Run bot
-client.poll.streams()
+cli.poll.streams()
 ```
 Please read [Example](examples) for more detail about usage this lib
 
