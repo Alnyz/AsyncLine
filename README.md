@@ -62,7 +62,7 @@ from AsyncLine import LineNext
 import asyncio
 
 cli = LineNext('ios')
-cli.login(name='your session name')
+cli.login(name='your session name', qr=True)
 
 """
 Args login:
