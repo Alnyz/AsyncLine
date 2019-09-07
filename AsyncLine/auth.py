@@ -241,7 +241,7 @@ class Auth(Connection):
 		self.profile = await self.call('getProfile')
 		self.last_rev = await self.call('getLastOpRevision')
 		self.settings = await self.call('getSettings')
-		self.groups_ids = await self.call('getGroupIdsJoined')
+		#self.groups_ids = await self.call('getGroupIdsJoined')
 		self.authToken = self.authToken
 		
 		for remoteFunc in self.afterLoginRemote:
@@ -249,7 +249,7 @@ class Auth(Connection):
 				'profile': self.profile,
 				'settings': self.settings,
 				'rev': self.last_rev,
-				'groups_ids': self.groups_ids,
+				#'groups_ids': self.groups_ids,
 				'mid': self.profile.mid,
 				'authToken': self.authToken,
 				'cert': getattr(self, 'cert', None),
