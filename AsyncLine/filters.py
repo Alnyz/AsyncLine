@@ -206,16 +206,15 @@ class Filters:
 		def __init__(self, users: int or str or list = None):
 			users = [] if users is None else users if isinstance(users, list) else [users]
 			super().__init__(
-				{"me" if i in ["me", "self"] else i.lower() if isinstance(i, str) else i for i in users}
+				{i.lower() if isinstance(i, str) else i for i in users}
 				if isinstance(users, list) else
-				{"me" if users in ["me", "self"] else users.lower() if isinstance(users, str) else user}
+				{users.lower() if isinstance(users, str) else user}
 			)
 			
 		def __call__(self, message):
 			return bool(
 				message.from_
-				and (message.from_ in self
-					or ("me" in self)
+				and (message.from_ in self)
 				)
 			)
 			
@@ -239,6 +238,6 @@ class Filters:
             )
 		def __call__(self, message):
 			return bool(
-				message.toType == 2
+				message.toType in [1, 2]
 				and (message.to in self)
 			)	
