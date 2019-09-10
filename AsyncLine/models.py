@@ -12,8 +12,8 @@ class SyncAsync(object):
 class ApplicationHeader(object):
 	MAP = {
 		'ios': {
-			'UA': "Line/8.14.2", # "Line/7.14.0"
-			'LA': "IOSIPAD\t8.14.2\t{}\t7.0.0".format(config.LOGIN_DEVICE_NAME),
+			'UA': "Line/9.15.1", # "Line/7.14.0"
+			'LA': "IOSIPAD\t9.15.1\t{}\t7.0.0".format(config.LOGIN_DEVICE_NAME),
 		},
 		'ios2': {
 			'UA': "Line/8.2.0",
@@ -28,8 +28,8 @@ class ApplicationHeader(object):
 			'LA': "CHROMEOS\t1.4.11\tChrome_OS\t1",
 		},
 		'android': {
-			'UA': "Line/9.14.1",
-			'LA': "ANDROID\t9.14.1\tAndroid\tOS\t7.0",
+			'UA': "Line/9.15.1",
+			'LA': "ANDROID\t9.15.1\tAndroid\tOS\t7.0",
 		},
 		'androidlite': {
 			'UA':"androidapp.line/7.5.0 (Linux; U; Android 4.4.4; en-US; 2014817 Build/KTU84P)" ,
