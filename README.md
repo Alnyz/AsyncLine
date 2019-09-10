@@ -50,12 +50,6 @@ Please be warned: `AsyncLine` is in a very early beta. You will encounter bugs w
 ## Installation
 - `pip3 install AsyncLine --upgrade`
 
-or clone this repository
-
-1. `git clone https://github.com/dyseo/AsyncLine`
-2. `cd AsyncLine`
-3. `pip3 install -r requirements.txt`
-
 ## Simple usage
 ```python
 from AsyncLine import LineNext
