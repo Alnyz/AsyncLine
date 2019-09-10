@@ -20,7 +20,7 @@ async def start_conversation(client, msg):
 	<func>:
 		cl.poll.conversation(....
 		args func:
-			msg = (Message, require), Message from this comversation
+			msg = (Message, require), Message from this conversation
 			callback = (callable, require), function for next conversation
 			done = (bool, optional), pass True if want this conversation ended
 	"""
