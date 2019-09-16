@@ -40,6 +40,7 @@ class Liff(Connection):
 			'user-agent': self.auth.UA,
 			'x-line-application': self.auth.LA,
 		})
+		self.liff_token = None
 		
 	def afterLogin(self, *args, **kws):
 		for k,v in kws.items():
@@ -68,7 +69,6 @@ class Liff(Connection):
 		requests.post(url, json=data, headers=headers)
 		
 	async def issueLiffView(self, to: str, liff_id: str):
-		self.allowLiff(liff_id.split('-')[0])
 		context = LiffChatContext(to)
 		chat_ctx = LiffContext(chat=context)
 		request = LiffViewRequest(liff_id, chat_ctx)
@@ -87,8 +87,10 @@ class Liff(Connection):
 		Return:
 			<requests.Response> or True if Response <= 200
 		"""
-		token   = await self.issueLiffView(to, liff_id)
+		if not self.liff_token:
+			self.allowLiff(liff_id.split('-')[0])
+			self.liff_token = (await self.issueLiffView(to, liff_id)).accessToken
 		url     = 'https://api.line.me/message/v3/share'
-		headers = {'Content-Type': 'application/json','Authorization': 'Bearer %s' % token.accessToken}
+		headers = {'Content-Type': 'application/json','Authorization': 'Bearer %s' % self.liff_token}
 		res     = requests.post(url, headers=headers, data=json.dumps(data))
 		return res

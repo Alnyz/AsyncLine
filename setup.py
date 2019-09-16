@@ -25,7 +25,7 @@ def install_requires():
 
 setup(
 	name='AsyncLine',
-	version='1.5.9.1',
+	version='1.5.9.2',
 	long_description=long_description,
 	long_description_content_type="text/markdown",
 	description='LINE Unofficial Python Library with Asyncio support and C++ Binding',
@@ -45,7 +45,6 @@ setup(
         "Programming Language :: Python",
         "Natural Language :: English",
         "License :: OSI Approved :: MIT License",
-	"Framework :: AsyncIO",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Topic :: Internet",

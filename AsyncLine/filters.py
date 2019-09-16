@@ -215,7 +215,6 @@ class Filters:
 			return bool(
 				message.from_
 				and (message.from_ in self)
-				)
 			)
 			
 	class chat(Filter, set):
