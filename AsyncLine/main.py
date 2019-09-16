@@ -67,7 +67,7 @@ class Client(Methods, BaseClient):
 				"X-Line-Application": self.LA,
 				"X-Line-Access":self.auth.authToken.strip(),
 			}
-		
+			
 	def afterLogin(self, *args, **kws):
 		for k,v in kws.items():
 			try:
@@ -125,6 +125,7 @@ class Client(Methods, BaseClient):
 	def delete_file(self, path):
 		if os.path.exists(path):
 			os.remove(path)
+			print("delete", path)
 			return True
 		else:
 			return False
@@ -147,18 +148,20 @@ class Client(Methods, BaseClient):
 	
 	def generate_tempFile(self, returnAs='path'):
 		assert returnAs in ['file','path'], 'Invalid returnAs value %s' % returnAs	
-		fName, fPath = 'linesync-%s-%i.bin' % (int(time.time()), randint(0, 9)), tempfile.gettempdir()
-		
+		fName = 'linesync-%s-%i.bin' % (int(time.time()), randint(0, 9))
+		fPath = tempfile.gettempdir()
 		return fName if returnAs == "file" else os.path.join(fPath, fName)
 		
-	async def download_fileUrl(self, url, path=None, headers=None, return_as = "path", chunked=True):
+	async def download_fileUrl(self, url, path=None, headers=None, return_as = "path", chunked=False):
 		assert return_as in ['path','bool','bin'], 'Invalid returnAs value %' % return_as
 		if not path:
 			path = self.generate_tempFile()
 		r = await self.get_content(url, headers=headers)
+		size = int(r.headers.get('Content-Length', 0))
+		chunk_size = size if size > 0 else 16*1024*1024
 		if r.ok:
 			if chunked:
-				for chunk in r.iter_content(chunk_size=10*1024*1024):
+				for chunk in r.iter_content(chunk_size=chunk_size):
 					if chunk:
 						self.save_file(path, chunk)
 			else:
@@ -187,31 +190,32 @@ class Client(Methods, BaseClient):
 			return oldList
 	
 	async def downloadObjMessage(self,
-								message_id,
-								return_as = "path",
-								path = None,
-								remove_path = True,
-								chunked=True):
+							message_id,
+							return_as = "path",
+							path = None,
+							remove_path = True,
+							chunked=False):
 		assert return_as in ["path", "bool"], "value of return_as incorrect got %s" % return_as
 		if not path:
-			path = self.generate_tempFile()	
+			path = self.generate_tempFile()
 		params = {"oid": message_id}
 		uri = config.OBS_URL + '/talk/m/download.nhn?' + urllib.parse.urlencode(params)
 		r = await self.get_content(uri)
+		size = int(r.headers.get('Content-Length', 0))
+		chunk_size = size if size > 0 else 16*1024*1024
+		if remove_path:
+			self.delete_file(path)
 		if r.ok:
 			if chunked:
-				for chunk in r.iter_content(chunk_size=10*1024*1024):
+				for chunk in r.iter_content(chunk_size=chunk_size):
 					if chunk:
 						self.save_file(path, chunk)
 			else:
 				self.save_file(path, r.raw)
-			
 			return path if return_as == "path" \
 				else True if return_as == "bool" else True
 		else:
 			logs.error("Download message content failed returning code %s" % r.status_code)
-		if remove_path:
-			self.delete_file(path)
 	
 	async def uploadObjHome(self, path, uri_img=None, type='image', returnAs='bool', objId=None):
 		assert returnAs in ['objId','bool'], "Invalid returnAs value got %s" % returnAs
@@ -239,22 +243,20 @@ class Client(Methods, BaseClient):
 		r = await self.post_content(config.OBS_URL + '/myhome/c/upload.nhn', headers=headers, data=file)
 		if not r.ok:
 			raise Exception('Upload object home failure returning code %s' % r.status_code)
-		
+			
 		return objId if returnAs == "objId" else True if returnAs =="bool" else True
-		
+	
 	async def uploadObjTalk(self, path, types='image', remove_path=False, objId=None, to=None, name=None):	
 		assert types in ['image','gif','video','audio','file'], "values of types incorrect got %s" % types
-		path = open(path, 'rb')
-		fdata = {"file": path}
-		
+		fdata = {"file": open(path, "rb")}
 		if types in ["image", "video", "file", "audio"]:
 			headers = None
 			uri = config.OBS_URL + '/talk/m/upload.nhn'
-			data = {'params': self.genOBSParams({'oid': objId,'size': len(path.read()),'type': types, 'name': name})}
+			data = {'params': self.genOBSParams({'oid': objId,'size': len(open(path, 'rb').read()),'type': types, 'name': name})}
 		elif types == "gif":
 			uri = config.OBS_URL + '/r/talk/m/reqseq'
 			fdata = None
-			data = path.read()
+			data = open(path, "rb").read()
 			params = {
 				'name': str(self.poll.revision - 1) + ".original",
 				'oid': 'reqseq',
@@ -272,7 +274,6 @@ class Client(Methods, BaseClient):
 				'x-obs-params': self.genOBSParams(params,'b64'),
 				**self.headers
 			})
-		
 		r = await self.post_content(url=uri, data=data, files=fdata, headers=headers)
 		if remove_path:
 			self.delete_file(path)
@@ -280,7 +281,7 @@ class Client(Methods, BaseClient):
 			return True
 		else:
 			logs.error("Upload content %s failed returning code %s" % (types, r.status_code))
-	
+			
 	async def updateGroupPicture(self,
 							groupid,
 							path = None,

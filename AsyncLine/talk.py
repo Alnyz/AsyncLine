@@ -894,7 +894,7 @@ class Talk(Connection):
 		self._unsendMessageReq += 1
 		return bool(await self.call("unsendMessage", self._unsendMessageReq, message_id))
 	
-	def getMidWithTag(self, message: Message) -> list:
+	def getMidWithTag(self, message: Message) -> list or str:
 		"""
 		Use this method to get mid of user using Mention
 		
@@ -906,7 +906,7 @@ class Talk(Connection):
 				cl.talk.getMidWithTag(message)
 				
 		Return:
-			<class 'list'> of mid user
+			<class 'list'> or <class 'str'> of mid user
 		"""
 		if message.contentMetadata["MENTION"] \
 			and message.contentMetadata is not None:
@@ -968,9 +968,9 @@ class Talk(Connection):
 			raise Exception("if args url is given, it cannot use the path")
 		if url is not None and path is None:
 			path = await self.cl.download_fileUrl(url, chunked=chunked)
-				
+		
 		objectId = (await self.sendMessage(to, text=None, contentType=1)).id
-		return await self.cl.uploadObjTalk(path=path, types='image', remove_path=remove_path, objId=objectId)
+		return await self.cl.uploadObjTalk(to=to, path=path, types='image', remove_path=remove_path, objId=objectId)
 	
 	async def sendVideo(self,
 						to: str,
@@ -1003,7 +1003,8 @@ class Talk(Connection):
 						to: str,
 						path: str = None,
 						url: str = None,
-						remove_path: bool = False) -> bool:
+						remove_path: bool = False,
+						chunked: bool = False) -> bool:
 		"""
 		Use this method to send Gif message
 		important if args url is given, it cannot use the path
@@ -1020,7 +1021,7 @@ class Talk(Connection):
 		if path is not None and url is not None:
 			raise Exception("if args url is given, it cannot use the path")
 		if url is not None and path is None:
-			path = await self.cl.download_fileUrl(url)
+			path = await self.cl.download_fileUrl(url, chunked=chunked)
 			
 		return await self.cl.uploadObjTalk(to=to, path=path, types='gif', remove_path=remove_path)
 	
@@ -1028,7 +1029,7 @@ class Talk(Connection):
 					to: str,
 					path: str = None,
 					file_name: str = None,
-					remove_path=False):
+					remove_path= False):
 		"""
 		Use this method to send File message
 		important if args url is given, it cannot use the path
