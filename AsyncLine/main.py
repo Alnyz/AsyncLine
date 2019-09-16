@@ -125,7 +125,6 @@ class Client(Methods, BaseClient):
 	def delete_file(self, path):
 		if os.path.exists(path):
 			os.remove(path)
-			print("delete", path)
 			return True
 		else:
 			return False
