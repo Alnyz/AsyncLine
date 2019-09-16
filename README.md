@@ -81,7 +81,7 @@ cli.poll.streams()
 Please read [Example](examples) for more detail about usage this lib
 
 ## Author
-Dyseo / [Line](https://line.me/ti/p/~line.bngsad)
+Dyseo / [@Dyseo](https://line.me/ti/p/~line.bngsad)
 
 ## Base Source
 Asynz / [Anysz](https://github.com/anysz)
