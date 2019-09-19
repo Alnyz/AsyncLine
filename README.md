@@ -22,17 +22,17 @@
   <a href="https://python.org"> 
     <img src="https://img.shields.io/badge/3.6%20%7C%203.7-blue.svg?&logo=python&label=Python" alt="Python">
   </a>
-  .
+  •
   <a href="https://opensource.org/licenses/MIT"> 
     <img src="https://img.shields.io/github/license/dyseo/A.svg" alt="License">
   </a>
-  .
+  •
   <a href="https://travis-ci.org/dyseo/AsyncLine.svg?branch=master">
     <img src="https://travis-ci.org/dyseo/AsyncLine.svg?branch=master" alt="Build">
   </a>
-  .
-  <a href="https://github.com/dyseo/AsyncLine">
-    <img src="https://img.shields.io/badge/Version-1.5.8-red" alt="Version">
+  •
+  <a href="https://github.com/dyseo/AsyncLine/releases">
+    <img src="https://img.shields.io/badge/Version-1.5.9-red" alt="Version">
   <a/>
 </h3>
   
