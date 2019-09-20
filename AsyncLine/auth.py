@@ -112,7 +112,7 @@ class Auth(Connection):
 					await self.loginWithQrcode(name)
 			elif not self.token_db and name is not None and os.path.exists(name+'.session'):
 				token = open(name+'.session', "r").read()
-				await self.loginWithAuthToken(token.split(">")[1])
+				await self.loginWithAuthToken(token.strip())
 			else:
 				await self.loginWithQrcode(path=name+".session" if name else None)
 		else:
@@ -148,8 +148,7 @@ class Auth(Connection):
 		self.cert = lr.certificate
 		if path and path.endswith(".session"):
 			with open(path, "w") as fp:
-				text = "auth > {}".format(lr.authToken)
-				fp.write(text)
+				fp.write(lr.authToken)
 		elif self.token_db is not None:
 			if not self._validate_col({'name': path}):
 				self.token_db.auth_col.insert_one({
@@ -208,9 +207,8 @@ class Auth(Connection):
 		else:
 			logs.critical('Login failed. got result type `%s`' % (result.type))
 		if path is not None:
-			with open(path, "a") as fp:
-				text = "\n{}".format(self.cert)
-				fp.write(text)
+			with open(path, "w") as fp:
+				fp.write(self.cert)
 		elif self.token_db is not None and name is not None:
 			if not self._validate_col({'name': name, 'mail': mail}):
 				if cert is None:
