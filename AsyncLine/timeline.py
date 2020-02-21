@@ -25,7 +25,7 @@ class Timeline(object):
 	
 	async def updateToken(self):
 		self.client.updateTimelineHeaders({
-			'X-Line-ChannelToken': (await self.client.ch.approveChannelAndIssueChannelToken('1341209950')).channelAccessToken
+			'X-Line-ChannelToken': (await self.client.ch.approveChannelAndIssueChannelToken('1341209850')).channelAccessToken
 		})
 	
 	async def getFeed(self, postLimit=10, commentLimit=1, likeLimit=1, order='TIME'):

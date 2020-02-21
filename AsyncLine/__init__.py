@@ -5,7 +5,6 @@ from .connections import Connection
 from .main import Client
 from .proto import *
 from .filters import *
-from .database import *
 from .timeline import *
 from .e2ee import *
 from .log import *
