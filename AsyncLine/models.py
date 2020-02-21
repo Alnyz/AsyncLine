@@ -12,12 +12,12 @@ class SyncAsync(object):
 class ApplicationHeader(object):
 	MAP = {
 		'ios': {
-			'UA': "Line/9.15.1", # "Line/7.14.0"
-			'LA': "IOSIPAD\t9.15.1\t{}\t7.0.0".format(config.LOGIN_DEVICE_NAME),
+			'UA': "Line/10.1.1",
+			'LA': "IOSIPAD\t10.1.1\t{}\t13.3.1".format(config.LOGIN_DEVICE_NAME),
 		},
 		'ios2': {
-			'UA': "Line/8.2.0",
-			'LA': "IOS\t8.2.0\t{}\t8.2.0".format(config.LOGIN_DEVICE_NAME),
+			'UA': "Line/10.1.1",
+			'LA': "IOS\t10.1.1\t{}\t13.3.1".format(config.LOGIN_DEVICE_NAME),
 		},
 		'desktop': {
 			'UA': "DESKTOP:MAC:10.9.4-MAVERICKS-x64(5.1.2)", #"DESKTOP:MAC:10.10.2-YOSEMITE-x64(4.5.0)",
@@ -25,7 +25,7 @@ class ApplicationHeader(object):
 		},
 		'chrome': {
 			'UA': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
-			'LA': "CHROMEOS\t1.4.11\tChrome_OS\t1",
+			'LA': "CHROMEOS\t2.3.3\tChrome_OS\t79.0",
 		},
 		'android': {
 			'UA': "Line/9.15.1",
