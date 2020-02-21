@@ -16,7 +16,7 @@ from .lib.Gen.ttypes import *
 logs = log.LOGGER
 
 class Auth(Connection):
-	def __init__(self, client, storage):
+	def __init__(self, client):
 		super().__init__(config.MAIN_PATH)
 		self.cli = client
 		self.LA, self.UA = self.cli.LA, self.cli.UA
@@ -26,7 +26,6 @@ class Auth(Connection):
 			'X-Line-Carrier': config.CARRIER,
 			"x-lal":"in_ID"
 		})
-		self.token_db = storage
 		self.afterLoginRemote = []
 
 	def remote(self, *func):
@@ -69,33 +68,14 @@ class Auth(Connection):
 			'X-Line-Access': verifier
 		})
 		return r
-	
-	def checkmail(self, mail):
-		if mail.endswith(".session"):
-			if os.path.exists(mail):
-				return True
-	
-	def _validate_col(self, *val):
-		r = self.token_db.auth_col.find_one(*val)
-		if r:
-			return True
-		else:
-			return False
 			
 	async def createLoginSession(self, name, token, mail, passwd, certt, qr):
 		if token is not None:
 			await self.loginWithAuthToken(token)
 		elif mail and passwd is not None:
-			if self.token_db is not None:
-				_name = name if name else mail
-				if self._validate_col({'name': _name, 'mail': mail}):
-					c = self.token_db.auth_col.find_one({'name': _name, 'mail': mail})
-					await self.loginWithCredential(mail=mail, password=passwd, cert=c['cert'])
-				else:
-					await self.loginWithCredential(mail=mail, password=passwd, name=_name)
-			else:
-				pname = name if name else mail +".session"
-				if self.checkmail(pname):
+				pname = name if name else mail
+				pname += ".session"
+				if os.path.exists(pname):
 					y = open(pname, "r").read().strip()
 					await self.loginWithCredential(mail=mail, password=passwd, cert=y)
 				else:
@@ -104,13 +84,7 @@ class Auth(Connection):
 		elif mail and passwd and cert is not None:
 			await self.loginWithCredential(mail=mail, password=passwd, cert=certt)
 		elif qr and name is not None:
-			if self.token_db is not None:
-				if self._validate_col({'name': name}):
-					token = self.token_db.auth_col.find_one({'name': name})
-					await self.loginWithAuthToken(token['token'])
-				else:
-					await self.loginWithQrcode(name)
-			elif not self.token_db and name is not None and os.path.exists(name+'.session'):
+			if (name is not None and os.path.exists(name+'.session')):
 				token = open(name+'.session', "r").read()
 				await self.loginWithAuthToken(token.strip())
 			else:
@@ -146,18 +120,12 @@ class Auth(Connection):
 		})
 		self.authToken = lr.authToken
 		self.cert = lr.certificate
-		if path and path.endswith(".session"):
+		if path:
 			with open(path, "w") as fp:
 				fp.write(lr.authToken)
-		elif self.token_db is not None:
-			if not self._validate_col({'name': path}):
-				self.token_db.auth_col.insert_one({
-					'name': path,
-					'token': self.authToken
-				})
 		await self.afterLogin()
 
-	async def loginWithCredential(self, mail, password, name=None, cert=None, path=None):
+	async def loginWithCredential(self, mail, password, cert=None, path=None):
 		self.url(config.MAIN_PATH)
 		rsakey = await self.call('getRSAKeyInfo', config.LOGIN_PROVIDER)
 		crypt  = self._encryptedEmailAndPassword(mail, password, rsakey)
@@ -206,24 +174,10 @@ class Auth(Connection):
 			})
 		else:
 			logs.critical('Login failed. got result type `%s`' % (result.type))
+			
 		if path is not None:
 			with open(path, "w") as fp:
 				fp.write(self.cert)
-		elif self.token_db is not None and name is not None:
-			if not self._validate_col({'name': name, 'mail': mail}):
-				if cert is None:
-					self.token_db.auth_col.insert_one({
-						'mail': mail,
-						'name': name,
-						'cert': self.cert
-					})
-			else:
-				r = self.token_db.auth_col.find_one({'name': name,'mail': mail})
-				if 'cert' not in r.keys():
-					self.token_db.auth_col.update_one({
-						'name': name,
-						'mail': mail
-					}, {'$set': {'cert': self.cert}})
 		await self.afterLogin()
 	
 	async def loginWithAuthToken(self, authToken, path=None):
@@ -239,7 +193,6 @@ class Auth(Connection):
 		self.profile = await self.call('getProfile')
 		self.last_rev = await self.call('getLastOpRevision')
 		self.settings = await self.call('getSettings')
-		#self.groups_ids = await self.call('getGroupIdsJoined')
 		self.authToken = self.authToken
 		
 		for remoteFunc in self.afterLoginRemote:
@@ -247,7 +200,6 @@ class Auth(Connection):
 				'profile': self.profile,
 				'settings': self.settings,
 				'rev': self.last_rev,
-				#'groups_ids': self.groups_ids,
 				'mid': self.profile.mid,
 				'authToken': self.authToken,
 				'cert': getattr(self, 'cert', None),

@@ -32,15 +32,13 @@ logs = log.LOGGER
 class Client(Methods, BaseClient):
 	def __init__(self,
 			client_name=None,
-			storage=None,
 			plugins=None,
 			UA=None,
 			LA=None):
 		super().__init__()
-		self.storage = storage
 		self.client_name = client_name if client_name else "custom"
 		self.LA, self.UA = ApplicationHeader(self.client_name, LA, UA).get()
-		self.auth = Auth(self, storage)
+		self.auth = Auth(self)
 		self.budy = Buddy(self.auth)
 		self.talk = Talk(self.auth)
 		self.ch = Channel(self.auth)
