@@ -9,9 +9,13 @@ import rsa
 import requests
 from . import config
 from . import log
+from .e2ee import decrypt_keychain, generate_asymmetric_keypair, create_secret_query
 from .models import SyncAsync, ApplicationHeader
 from .connections import Connection
 from .lib.Gen.ttypes import *
+
+from thrift.protocol.TCompactProtocol import TCompactProtocol
+from thrift.transport.TTransport import TMemoryBuffer
 
 logs = log.LOGGER
 
@@ -97,22 +101,30 @@ class Auth(Connection):
 	async def loginWithQrcode(self, path=None):
 		self.url(config.MAIN_PATH)
 		qr = await self.call('getAuthQrcode', True, "AsyncLine", "")
-		print("line://au/q/"+qr.verifier)
+		p_key = generate_asymmetric_keypair()
+		secret_query = create_secret_query(p_key.public_key)
+		print(f"line://au/q/{qr.verifier}?secret={secret_query}&e2eeVersion=1")
 		r = self.waitForPhoneConfirm(qr.verifier)
-		vr = r.json()['result']['verifier']
+		vr = r.json()
+	
+		key_chain = vr['result']['metadata']['encryptedKeyChain']
+		public_key = vr['result']['metadata']['publicKey']
+		data_key = decrypt_keychain(p_key, key_chain, public_key)
+		keychain = E2EEKeyChain()
+		tbuffer = TMemoryBuffer(data_key)
+		protocol = TCompactProtocol(tbuffer)
+		keychain.read(protocol)
+		
 		self.url(config.AUTH_PATH)
 		rq = LoginRequest(
-			LoginType.QRCODE,
-			IdentityProvider.LINE,
-			None,
-			None,
-			True,
-			config.LOGIN_LOCATION,
-			"AsyncLine",
-			None,
-			vr,
-			None,
-			2
+			type=LoginType.QRCODE,
+			identityProvider=IdentityProvider.LINE,
+			keepLoggedIn=True,
+			accessLocation=config.LOGIN_LOCATION,
+			systemName="AsyncLine",
+			verifier=vr["result"]["verifier"],
+			secret=p_key.public_key,
+			e2eeVersion=2
 		)
 		lr = await self.call('loginZ', rq)
 		self.updateHeaders({
@@ -131,17 +143,16 @@ class Auth(Connection):
 		crypt  = self._encryptedEmailAndPassword(mail, password, rsakey)
 		self.url(config.AUTH_PATH)
 		rq = LoginRequest(
-			LoginType.ID_CREDENTIAL,
-			IdentityProvider.LINE_PHONE,
-			rsakey.keynm,
-			crypt,
-			True,
-			config.LOGIN_LOCATION,
-			"AsyncLine",
-			cert,
-			None,
-			crypt.encode() if type(crypt) == str else crypt, #none, #crypt
-			0
+			type=LoginType.ID_CREDENTIAL,
+			identityProvider=IdentityProvider.LINE_PHONE,
+			identifier=rsakey.keynm,
+			password=crypt,
+			keepLoggedIn=True,
+			accessLocation=config.LOGIN_LOCATION,
+			systemName="AsyncLine",
+			certificate=cert,
+			secret=crypt.encode() if type(crypt) == str else crypt, #none, #crypt
+			e2eeVersion=0
 		)
 		result = await self.call('loginZ', rq)
 		self.url(config.MAIN_PATH)
@@ -149,14 +160,14 @@ class Auth(Connection):
 			print("Please confirm this code on your device %s"% (result.pinCode))
 			r = self.waitForPhoneConfirm(result.verifier)
 			rq = LoginRequest(
-				LoginType.QRCODE,
-				IdentityProvider.LINE,
-				None, None, True,
-				config.LOGIN_LOCATION,
-				self.LA.split('\t')[0],
-				cert, r.json()['result']['verifier'],
-				None, 
-				2
+				type=LoginType.QRCODE,
+				identityProvider=IdentityProvider.LINE,
+				keepLoggedIn=True,
+				accessLocation=config.LOGIN_LOCATION,
+				systemName="AsyncLine",
+				certificate=cert,
+				verifier=r.json()['result']['verifier'],
+				e2eeVersion=2
 			)
 			self.url(config.AUTH_PATH)
 			result = await self.call('loginZ', rq)

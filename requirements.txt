@@ -5,3 +5,5 @@ async_timeout
 aiohttp
 aiostomp
 asyncio-nats-client
+pycryptodome
+python-axolotl_curve25519
