@@ -52,10 +52,10 @@ Please be warned: `AsyncLine` is in a very early beta. You will encounter bugs w
 
 ## Simple usage
 ```python
-from AsyncLine import LineNext
+from AsyncLine import Client
 import asyncio
 
-cli = LineNext('ios')
+cli = Client('ios')
 cli.login(name='your session name', qr=True)
 
 """
@@ -71,7 +71,7 @@ Args login:
 		e.g client.login(name="sync", qr=True) this needed for next login
 """
 
-@cli.hooks(type=26, filters=Filters.command("hello"))
+@cli.hooks(type=25, filters=Filters.command("hello"))
 async def hello_message(client, msg):
 	await client.talk.sendMessage(msg.to, "Heyy!")
 	
